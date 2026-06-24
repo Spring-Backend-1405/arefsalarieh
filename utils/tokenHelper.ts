@@ -12,7 +12,7 @@ const createJwtToken = (data: { id: string; role: string  } , time : number) => 
 
 
 const checkJwtToken = (token: string) => {
-  const secret = process.env.JWT_SECRET;
+  const secret = env.jwtSecret;
   try {
     if (secret) {
       const checkToken = jwt.verify(token, secret);
