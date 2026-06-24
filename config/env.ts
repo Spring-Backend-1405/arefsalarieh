@@ -11,5 +11,7 @@ for(let key of requiredEnv){
 
 export const env = {
     databaseUrl : process.env.DATABASE_URL,
-    port : process.env.PORT
+    port : process.env.PORT,
+    jwtSecret : process.env.JWT_SECRET,
+    envirement : process.env.NODE_ENV
 }
