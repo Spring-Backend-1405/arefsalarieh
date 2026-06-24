@@ -2,6 +2,7 @@ import express from "express";
 import cors from 'cors'
 import helmet from "helmet";
 import errorMiddleware from "./middlewares/errorMiddleware";
+import authRouter from "./modules/auth/auth.routes";
 
 export const createApp = () => {
 
@@ -13,6 +14,8 @@ export const createApp = () => {
   app.get('/health' , (req , res)=>{
     res.send('it`s healthy')
   })
+
+  app.use('/api/auth' , authRouter)
 
   app.use(errorMiddleware)
 
