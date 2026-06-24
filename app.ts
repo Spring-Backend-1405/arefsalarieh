@@ -1,7 +1,7 @@
 import express from "express";
 import cors from 'cors'
 import helmet from "helmet";
-import errorMiddleware from "./middlewares/errorMiddleware.js";
+import errorMiddleware from "./middlewares/errorMiddleware";
 
 export const createApp = () => {
 

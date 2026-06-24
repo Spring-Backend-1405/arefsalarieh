@@ -1,4 +1,5 @@
 export class CustomError extends Error {
+  statusCode: number;
   constructor(message = "internal error", statusCode = 500) {
     super(message);
     this.statusCode = statusCode;

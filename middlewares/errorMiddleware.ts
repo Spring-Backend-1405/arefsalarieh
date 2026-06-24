@@ -1,6 +1,15 @@
-import { CustomError } from "../utils/customError.js";
+// middlewares/errorHandler.ts
+import type { Request, Response, NextFunction } from "express";
+import { CustomError } from "../utils/customError";
+import logger from "../utils/logger";
 
-const errorMiddleware = (error, req, res, next) => {
+const errorMiddleware = (
+  error: CustomError | Error,
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  logger.error(error);
   let statusCode = 500;
   let message = "Internal Server Error";
 
