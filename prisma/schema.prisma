@@ -12,10 +12,36 @@ datasource db {
   provider = "sqlite"
 }
 
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
 model User {
-  id       String   @id @default(uuid())
-  email    String   @unique
-  password String
-  role     String   @default("user")
-  gender   Boolean?
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      String   @default("user")
+  gender    Gender?
+  isActive  Boolean  @default(true)
+  isDelete  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  profile Profile?
+}
+
+model Profile {
+  id        String   @id @default(uuid())
+  phone     String?
+  country   String?
+  state     String?
+  city      String?
+  address   String?
+  avatar    String?
+  bio       String?
+  createdAt DateTime @default(now())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
 }

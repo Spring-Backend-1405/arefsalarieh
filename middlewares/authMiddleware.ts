@@ -1,6 +1,6 @@
-import { customError } from "../utils/customError.ts";
+import { customError } from "../utils/customError";
 import type { Request, Response, NextFunction } from "express";
-import { checkJwtToken } from "../utils/tokenHelper.ts";
+import { checkJwtToken } from "../utils/tokenHelper";
 
 const checkAuthentication = (
   req: Request,
