@@ -13,13 +13,12 @@ const checkAuthentication = (
   else if (token) {
     const user = checkJwtToken(token);
     if (!user) customError("your token is not valid", 401);
-    const authUser = user as { id: number; role: string };
+    const authUser = user as { id: number };
 
     const authReq = req as any;
 
     authReq.user = {
       id: authUser.id,
-      role: authUser.role,
     };
 
     next();

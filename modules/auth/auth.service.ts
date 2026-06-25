@@ -3,11 +3,10 @@ import type {  Response } from "express";
 import {env} from '../../config/env'
 
 
-export const generaterefreshTokenAndSetCookie = (res : Response , data : {id:string , role : string}) => {
+export const generaterefreshTokenAndSetCookie = (res : Response , data : {id:string }) => {
   const refreshToken = createJwtToken(
     {
       id: data.id,
-      role: data.role,
     },
     7 * 24 * 60 * 60 * 1000,
   );

@@ -32,6 +32,8 @@ export const handleRegister = async (
       },
     });
 
+    console.log(user)
+
     const { password: _, ...userWithoutPassword } = user;
 
     res.status(201).json({
@@ -54,44 +56,43 @@ export const handleLogin = async (
     const { email, password } = req.body;
 
     const existingUser = await prisma.user.findFirst({
-      where: {
-        email,
-      },
+      where: { email },
+      include : {
+        roles : true
+      }
     });
 
     if (!existingUser) {
-      return next(customError("user doesnt exist", 400));
+      return next(customError("User doesn't exist", 400));
     }
 
     const checkPassword = await comparePassword(
       password,
       existingUser.password,
     );
-
     if (!checkPassword) {
-      return next(customError("password is wrong", 404));
+      return next(customError("Password is wrong", 404));
     }
 
     const accessToken = createJwtToken(
       {
         id: existingUser.id,
-        role: existingUser.role,
       },
-      24 * 60 * 60 * 1000,
+      24 * 60 * 60,
     );
 
     generaterefreshTokenAndSetCookie(res, {
       id: existingUser.id,
-      role: existingUser.role,
     });
 
-    res.status(201).json({
-      message: "login succes",
+    res.status(200).json({
+      status: true,
+      message: "Login successful",
       data: {
         id: existingUser.id,
         email: existingUser.email,
-        role: existingUser.role,
         accessToken,
+        roles : existingUser.roles
       },
     });
   } catch (error) {
@@ -112,22 +113,19 @@ export const handleRefreshToken = async (
     }
 
     const decoded = checkJwtToken(refreshToken);
-    if (!decoded) customError("your refreshToken is not valid", 401);
-
+    if (!decoded) {
+      return next(customError("Invalid refresh token", 401));
+    }
     const authUser = decoded as { id: string; role: string };
-
 
     const user = await prisma.user.findUnique({
       where: { id: authUser.id },
     });
     if (!user) {
-      return next(customError("User doesnt exist", 401));
+      return next(customError("User doesn't exist", 401));
     }
 
-    const newAccessToken = createJwtToken(
-      { id: user.id, role: user.role },
-      24 * 60 * 60 * 1000, 
-    );
+    const newAccessToken = createJwtToken({ id: user.id }, 7 * 24 * 60 * 60);
 
     res.status(200).json({
       status: true,
