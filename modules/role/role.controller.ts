@@ -8,8 +8,14 @@ export const getAllRoles = async (
   next: NextFunction,
 ) => {
   try {
+    const roles = await prisma.role.findMany()
+
+    res.status(200).json({
+      message : true,
+      data : roles
+    })
   } catch (error) {
-        console.log("error in getAllRoles = ", error);
+    console.log("error in getAllRoles = ", error);
     next(error);
   }
 };
