@@ -6,6 +6,8 @@ import errorMiddleware from "./middlewares/errorMiddleware";
 import authRouter from "./modules/auth/auth.routes";
 import userRouter from "./modules/user/user.routes";
 import roleRouter from "./modules/role/role.routes";
+import permissionRouter from "./modules/permission/permission.routes";
+import rolePermissionRouter from "./modules/rolePermission/rolePermission.routes";
 
 export const createApp = () => {
 
@@ -23,7 +25,8 @@ export const createApp = () => {
   app.use('/api/auth' , authRouter)
   app.use('/api/user' , userRouter)
   app.use('/api/role' , roleRouter)  
-  
+  app.use('/api/permission' , permissionRouter)    
+  app.use('/api/role-permission' , rolePermissionRouter) 
 
   app.use(errorMiddleware)
 

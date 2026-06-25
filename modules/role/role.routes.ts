@@ -5,7 +5,7 @@ import { getAllRoles } from "./role.controller";
 
 const roleRouter = express.Router();
 
-roleRouter.get("/get-all-routes",registerValidation  , getAllRoles);
+roleRouter.get("/get-all-roules",registerValidation  , getAllRoles);
 
 
 

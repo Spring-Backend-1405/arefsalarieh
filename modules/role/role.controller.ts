@@ -1,6 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
 import { prisma } from "../../utils/prisma";
-import { customError } from "../../utils/customError";
 
 export const getAllRoles = async (
   req: Request,
