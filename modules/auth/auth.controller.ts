@@ -58,7 +58,11 @@ export const handleLogin = async (
     const existingUser = await prisma.user.findFirst({
       where: { email },
       include : {
-        roles : true
+        roles : {
+          include :{
+            role : true
+          }
+        }
       }
     });
 

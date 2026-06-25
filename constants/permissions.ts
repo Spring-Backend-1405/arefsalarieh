@@ -4,7 +4,7 @@ export const Resources = {
   COMMENT: 'comment',
   ORDER: 'order',
   PROFILE: 'profile',
-  ROLE : 'role'
+  ROLEPERMISSION : 'role-permission'
 } as const;
 
 export const Actions = {

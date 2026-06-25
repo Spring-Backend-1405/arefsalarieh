@@ -1,6 +1,8 @@
 import { customError } from "../utils/customError";
 import type { Request, Response, NextFunction } from "express";
 import { checkJwtToken } from "../utils/tokenHelper";
+import { hasPermission } from "../utils/permission";
+
 
 const checkAuthentication = (
   req: Request,
@@ -25,26 +27,28 @@ const checkAuthentication = (
   }
 };
 
-const checkAuthorization = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-  role: string,
-) => {
-  const authReq = req as any;
-  const user = authReq.user;
-  if (!user) customError("user token is not valid ! please login");
-  if (user.role != role)
-    customError("you don't have access for this action", 403);
-  next();
+
+
+const requirePermission = (resource: string, action: string) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+    const req2 = req as any
+
+      const userId = req2.user?.id;
+      if (!userId) {
+        return next(customError("Unauthenticated", 401));
+      }
+
+      const hasAccess = await hasPermission(userId, resource, action);
+      if (!hasAccess) {
+        return next(customError("Forbidden: insufficient permissions", 403));
+      }
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
 };
 
-const checkAuthorizationAdmin = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  checkAuthorization(req, res, next, "admin");
-};
-
-export { checkAuthentication, checkAuthorizationAdmin };
+export { checkAuthentication, requirePermission };
