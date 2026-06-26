@@ -2,8 +2,10 @@ import express from "express";
 import {
   addPermissionToRole,
   deletePermissionfromRole,
-  getAllRolePermission,
-  getSingleRolePermission,
+  getAllPermissionsRoles,
+  getAllRolesPermissions,
+  getSinglePermissionRoles,
+  getSingleRolePermissions,
 } from "./rolePermission.controller";
 import {
   checkAuthentication,
@@ -17,14 +19,28 @@ rolePermissionRouter.get(
   "/get-all-role-Permission",
   checkAuthentication,
   requirePermission(Resources.ROLEPERMISSION, Actions.READ),
-  getAllRolePermission,
+  getAllRolesPermissions,
 );
 rolePermissionRouter.get(
   "/get-single-role-Permission/:roleId",
   checkAuthentication,
   requirePermission(Resources.ROLEPERMISSION, Actions.READ),
-  getSingleRolePermission,
+  getSingleRolePermissions,
 );
+rolePermissionRouter.get(
+  "/get-all-Permission-role",
+  checkAuthentication,
+  requirePermission(Resources.ROLEPERMISSION, Actions.READ),
+  getAllPermissionsRoles,
+);
+
+rolePermissionRouter.get(
+  "/get-single-Permission-roles/:permissionId",
+  checkAuthentication,
+  requirePermission(Resources.ROLEPERMISSION, Actions.READ),
+  getSinglePermissionRoles,
+);
+
 rolePermissionRouter.post(
   "/add-permission-to-role",
   checkAuthentication,

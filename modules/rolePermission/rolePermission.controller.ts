@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import { prisma } from "../../utils/prisma";
 import { customError } from "../../utils/customError";
 
-export const getAllRolePermission = async (
+export const getAllRolesPermissions = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -28,7 +28,7 @@ export const getAllRolePermission = async (
   }
 };
 
-export const getSingleRolePermission = async (
+export const getSingleRolePermissions = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -52,6 +52,63 @@ export const getSingleRolePermission = async (
     res.status(200).json({
       message: true,
       data: roles,
+    });
+  } catch (error) {
+    console.log("error in getSingleRolePermission = ", error);
+    next(error);
+  }
+};
+
+export const getAllPermissionsRoles = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const permissions = await prisma.permission.findMany({
+      include: {
+        rolePermissions: {
+          include: {
+            role : true
+          },
+        },
+      },
+    });
+
+    res.status(200).json({
+      message: true,
+      data: permissions,
+    });
+  } catch (error) {
+    console.log("error in getAllRolePermission = ", error);
+    next(error);
+  }
+};
+
+export const getSinglePermissionRoles = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { permissionId } = req.params;
+
+    const permissions = await prisma.permission.findFirst({
+      where: {
+        id: String(permissionId),
+      },
+      include: {
+        rolePermissions: {
+          include: {
+            role : true,
+          },
+        },
+      },
+    });
+
+    res.status(200).json({
+      message: true,
+      data: permissions,
     });
   } catch (error) {
     console.log("error in getSingleRolePermission = ", error);

@@ -4,6 +4,7 @@ export const Resources = {
   COMMENT: 'comment',
   ORDER: 'order',
   PROFILE: 'profile',
+  PERMISSION : 'permission',
   ROLEPERMISSION : 'role-permission'
 } as const;
 
