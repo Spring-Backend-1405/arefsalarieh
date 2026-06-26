@@ -1,5 +1,4 @@
 import express from "express";
-import { registerValidation } from "../auth/auth.validation";
 import {
   addNewPermission,
   deletePermission,
@@ -15,21 +14,18 @@ const permissionRouter = express.Router();
 
 permissionRouter.get(
   "/get-all-permission",
-  registerValidation,
   checkAuthentication,
   requirePermission(Resources.PERMISSION, Actions.READ),
   getAllPermissions,
 );
 permissionRouter.post(
   "/add-new-permission",
-  registerValidation,
   checkAuthentication,
   requirePermission(Resources.PERMISSION, Actions.CREATE),
   addNewPermission,
 );
 permissionRouter.delete(
   "/delete-permission/:permissionId",
-  registerValidation,
   checkAuthentication,
   requirePermission(Resources.PERMISSION, Actions.DELETE),
   deletePermission,

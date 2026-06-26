@@ -5,6 +5,26 @@ export const hasPermission = async (
   resource: string,
   action: string,
 ): Promise<boolean> => {
+  const permission = await prisma.permission.findUnique({
+    where: {
+      resource_action: { resource, action },
+    },
+  });
+  if (!permission) return false; 
+
+  const userPermission = await prisma.userPermission.findUnique({
+    where: {
+      userId_permissionId: {
+        userId,
+        permissionId: permission.id,
+      },
+    },
+  });
+
+  if (userPermission) {
+    return userPermission.type === "ALLOW";
+  }
+
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: {
@@ -23,7 +43,6 @@ export const hasPermission = async (
       },
     },
   });
-  
 
   if (!user) return false;
 

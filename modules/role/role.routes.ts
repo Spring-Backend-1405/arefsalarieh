@@ -1,13 +1,15 @@
 import express from "express";
-import { validateMiddleware } from "../../middlewares/validateMiddleware";
-import { registerValidation } from "../auth/auth.validation";
 import { getAllRoles } from "./role.controller";
-
+import { checkAuthentication, requirePermission } from "../../middlewares/authMiddleware";
+import { Actions, Resources } from "../../constants/permissions";
 
 const roleRouter = express.Router();
 
-roleRouter.get("/get-all-roules",registerValidation   , getAllRoles);
-
-
+roleRouter.get(
+  "/get-all-roules",
+  checkAuthentication,
+  requirePermission(Resources.ROLE, Actions.READ),
+  getAllRoles,
+);
 
 export default roleRouter;

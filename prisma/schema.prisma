@@ -13,6 +13,11 @@ enum Gender {
   OTHER
 }
 
+enum UserPermissionType {
+  ALLOW
+  DENY
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -24,6 +29,7 @@ model User {
 
   profile Profile?
   roles   UserRole[]
+  userPermission UserPermission[]
 }
 
 model Profile {
@@ -72,6 +78,8 @@ model Permission {
   createdAt   DateTime @default(now())
 
   rolePermissions RolePermission[]
+  userPermission UserPermission[]
+
 
   @@unique([resource, action])
 }
@@ -85,4 +93,17 @@ model RolePermission {
   permission Permission @relation(fields: [permissionId], references: [id] , onDelete: Cascade)
 
   @@id([roleId, permissionId])
+}
+
+
+model UserPermission {
+  userId       String
+  permissionId String
+  type         UserPermissionType
+  assignedAt   DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id])
+  permission   Permission @relation(fields: [permissionId], references: [id])
+
+  @@id([userId, permissionId])
 }
