@@ -5,6 +5,9 @@ import {
   checkEmail,
   createUpdateUserData,
   findUser,
+  handleOrder,
+  handlePagination,
+  handleQuery,
   handleUpdateUser,
 } from "./user.servece";
 
@@ -65,6 +68,52 @@ export const updateProfile = async (
     });
   } catch (error) {
     console.log("error in updateProfile = ", error);
+    next(error);
+  }
+};
+
+export const getAllUsers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const searchWhere = handleQuery(req);
+    const orderBy = handleOrder(req);
+    const { skip, limit } = handlePagination(req);
+
+    const totalCount = await prisma.user.count({
+      where: searchWhere,
+    });
+
+    const users = await prisma.user.findMany({
+      include: {
+        profile: true,
+      },
+      where: searchWhere,
+      orderBy,
+      skip,
+      take: limit,
+    });
+
+    const totalPages = Math.ceil(totalCount / limit);
+
+    res.status(200).json({
+      status: true,
+      data: {
+        users,
+        pagination: {
+          totalCount,
+          totalPages,
+          currentPage: Math.floor(skip / limit) + 1,
+          limit,
+          hasNextPage: skip + limit < totalCount,
+          hasPreviousPage: skip > 0,
+        },
+      },
+    });
+  } catch (error) {
+    console.log("error in getAllUsers = ", error);
     next(error);
   }
 };

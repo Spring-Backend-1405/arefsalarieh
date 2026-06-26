@@ -8,7 +8,11 @@ export const updateProfileValidation = [
     .normalizeEmail()
     .isLength({ min: 6, max: 40 })
     .withMessage("Email must be between 6 and 40 characters"),
-
+  body("name")
+    .isString()
+    .withMessage("name must be a string")
+    .isLength({ min: 2, max: 40 })
+    .withMessage("name must be between 2 and 40 characters"),
   body("gender")
     .optional()
     .isIn(["MALE", "FEMALE", "OTHER"])

@@ -4,6 +4,7 @@ import { customError } from "../../utils/customError";
 import { comparePassword, hashPassword } from "../../utils/hashPassword";
 import { checkJwtToken, createJwtToken } from "../../utils/tokenHelper";
 import { generaterefreshTokenAndSetCookie } from "./auth.service";
+// import { capitalizeFirstLetter } from "../../utils/capitalize";
 
 export const handleRegister = async (
   req: Request,
@@ -11,7 +12,9 @@ export const handleRegister = async (
   next: NextFunction,
 ) => {
   try {
-    const { email, password } = req.body;
+    let { email, password , name } = req.body;
+
+    // name = capitalizeFirstLetter(name)
 
     const existingUser = await prisma.user.findFirst({
       where: {
@@ -29,6 +32,7 @@ export const handleRegister = async (
       data: {
         email,
         password: hashedPass,
+        name
       },
     });
 
