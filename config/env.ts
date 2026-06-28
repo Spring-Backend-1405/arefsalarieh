@@ -14,5 +14,4 @@ export const env = {
     port : process.env.PORT,
     jwtSecret : process.env.JWT_SECRET,
     envirement : process.env.NODE_ENV,
-    mailTrapToken : process.env.MIALTRAP_TOKEN || ''
 }

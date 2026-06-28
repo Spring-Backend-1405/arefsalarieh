@@ -1,7 +1,9 @@
+import  "dotenv/config";
 import { createJwtToken } from "../../utils/tokenHelper";
 import type { Response, NextFunction } from "express";
 import { env } from "../../config/env";
 import { sendEmail } from "../../config/nodemailer.config";
+import { OAuth2Client } from "google-auth-library";
 import {
   PASSWORD_RESET_REQUEST_TEMPLATE,
   VERIFICATION_EMAIL_TEMPLATE,
@@ -52,3 +54,20 @@ export const sendForgotPasswordEmail = async (
 
   await sendEmail(email, "reset your pass", html);
 };
+
+
+export function getGoogleClient() {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const redirectUri = process.env.GOOGLE_REDIRECT_URI;
+
+  if (!clientId || !clientSecret) {
+    throw new Error("Google client id and secret both are missing");
+  }
+
+  return new OAuth2Client({
+    clientId,
+    clientSecret,
+    redirectUri,
+  });
+}

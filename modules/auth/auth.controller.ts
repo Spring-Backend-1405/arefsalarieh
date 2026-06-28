@@ -5,6 +5,7 @@ import { comparePassword, hashPassword } from "../../utils/hashPassword";
 import { checkJwtToken, createJwtToken } from "../../utils/tokenHelper";
 import {
   generaterefreshTokenAndSetCookie,
+  getGoogleClient,
   sendForgotPasswordEmail,
   sendVerificationEmail,
 } from "./auth.service";
@@ -236,7 +237,10 @@ export const handleLogin = async (
     if (existingUser.twoFactorEnabled) {
       let verificationToken: string = "123456";
       try {
-        verificationToken = await sendVerificationEmail(normalizedEmail , 'login verify code');
+        verificationToken = await sendVerificationEmail(
+          normalizedEmail,
+          "login verify code",
+        );
 
         const updateUser = await prisma.user.update({
           where: {
@@ -345,7 +349,6 @@ export const handleLoginSteptwo = async (
     ) {
       return next(customError("your 2fa Token has expired", 400));
     }
-
 
     const accessToken = createJwtToken(
       {
@@ -588,6 +591,132 @@ export async function activeTwoStepVerification(
     });
   } catch (error) {
     console.log("error in forgotPasswordHandler = ", error);
+    next(error);
+  }
+}
+
+export async function googleAuthStartHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const client = getGoogleClient();
+
+    const url = client.generateAuthUrl({
+      access_type: "offline",
+      prompt: "consent",
+      scope: ["openid", "email", "profile"],
+    });
+
+    return res.redirect(url);
+  } catch (error) {
+    console.log("error in googleAuthStartHandler = ", error);
+    next(error);
+  }
+}
+
+export async function googleAuthCallbackHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const code = req.query.code as string | undefined;
+
+  if (!code) {
+    return res.status(400).json({
+      message: "Missing code in callback",
+    });
+  }
+
+  try {
+    const client = getGoogleClient();
+
+    const { tokens } = await client.getToken(code);
+
+    if (!tokens.access_token) {
+      return next("No access token received from Google");
+    }
+
+    const userInfoResponse = await fetch(
+      "https://www.googleapis.com/oauth2/v2/userinfo",
+      {
+        headers: {
+          Authorization: `Bearer ${tokens.access_token}`,
+        },
+      }
+    );
+
+    if (!userInfoResponse.ok) {
+      throw new Error(
+        `Failed to get user info: ${userInfoResponse.statusText}`
+      );
+    }
+
+    const userInfo = await userInfoResponse.json() as any;
+
+    const email = userInfo.email;
+    const name = userInfo.name || "";
+    const emailVerified = userInfo.verified_email;
+
+    if (!email || !emailVerified) {
+      return next("Google email account is not verified");
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    let user = await prisma.user.findFirst({
+      where: { email: normalizedEmail },
+    });
+
+    if (!user) {
+      const randomPassword = crypto.randomBytes(16).toString("hex");
+      const passwordHash = await hashPassword(randomPassword);
+
+      user = await prisma.user.create({
+        data: {
+          email: normalizedEmail,
+          password: passwordHash,
+          name,
+          isEmailVerified: true,
+        },
+      });
+    } else {
+      if (!user.isEmailVerified) {
+        user = await prisma.user.update({
+          where: { email: normalizedEmail },
+          data: { isEmailVerified: true },
+        });
+      }
+    }
+
+    const accessToken = createJwtToken(
+      { id: user.id },
+      24 * 60 * 60 * 1000
+    );
+
+    generaterefreshTokenAndSetCookie(res, { id: user.id });
+
+    const userForRespons = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      gender: user.gender,
+      isEmailVerified: user.isEmailVerified,
+      twoFactorEnabled: user.twoFactorEnabled,
+      createdAt: user.createdAt,
+    };
+
+    res.status(200).json({
+      status: true,
+      message: "Login successful",
+      data: {
+        ...userForRespons,
+        accessToken,
+      },
+    });
+  } catch (error) {
+    console.log("error in googleAuthCallbackHandler = ", error);
     next(error);
   }
 }
