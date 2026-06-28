@@ -9,6 +9,7 @@ import {
   sendVerificationEmail,
 } from "./auth.service";
 import crypto from "crypto";
+import { findUser } from "../user/user.servece";
 
 export const handleRegister = async (
   req: Request,
@@ -366,8 +367,7 @@ export async function forgotPasswordHandler(
     }
 
     res.json({
-      message: 'a link will send to your email',
-      
+      message: "a link will send to your email",
     });
   } catch (error) {
     console.log("error in forgotPasswordHandler = ", error);
@@ -434,6 +434,52 @@ export async function resetPasswordHandler(
     res.status(201).json({
       status: true,
       message: "password changed successfully",
+      data: userForRespons,
+    });
+  } catch (error) {
+    console.log("error in forgotPasswordHandler = ", error);
+    next(error);
+  }
+}
+
+export async function activeTwoStepVerification(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const authReq = req as any;
+
+    const { id } = authReq.user;
+
+    const existingUser = await findUser({ id });
+
+    if (existingUser?.twoFactorEnabled) {
+      return next(customError("you already active 2fa", 404));
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        twoFactorEnabled: true,
+      },
+    });
+
+    const userForRespons = {
+      id: updatedUser.id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      gender: updatedUser.gender,
+      isEmailVerified: updatedUser.isEmailVerified,
+      twoFactorEnabled: updatedUser.twoFactorEnabled,
+      createdAt: updatedUser.createdAt,
+    };
+
+    res.status(201).json({
+      status: true,
+      message: "2fa enabled successfully",
       data: userForRespons,
     });
   } catch (error) {

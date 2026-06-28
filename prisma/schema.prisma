@@ -19,26 +19,25 @@ enum UserPermissionType {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  gender    Gender?
-  name      String
-  isActive  Boolean  @default(true)
-  isDelete  Boolean  @default(false)
+  id       String  @id @default(uuid())
+  email    String  @unique
+  password String
+  gender   Gender?
+  name     String
+  isActive Boolean @default(true)
+  isDelete Boolean @default(false)
 
-  verificationToken String?
-  verificationTokenExpiresAt DateTime?  
-  isEmailVerified  Boolean  @default(false)
+  verificationToken          String?
+  verificationTokenExpiresAt DateTime?
+  isEmailVerified            Boolean   @default(false)
 
-  twoFactorEnabled  Boolean  @default(false)
-  twoFactorSecret      String?
-
-  tokenVersion Int @default(0)
-
-  resetPasswordToken String?
+  resetPasswordToken   String?
   resetPasswordExpires DateTime?
-  
+
+  twoFactorEnabled         Boolean   @default(false)
+  twoFactorSecret          String?
+  twoFactorSecretExpiresAt DateTime?
+
   createdAt DateTime @default(now())
 
   profile        Profile?
