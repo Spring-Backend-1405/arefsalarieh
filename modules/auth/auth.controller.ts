@@ -3,8 +3,10 @@ import { prisma } from "../../utils/prisma";
 import { customError } from "../../utils/customError";
 import { comparePassword, hashPassword } from "../../utils/hashPassword";
 import { checkJwtToken, createJwtToken } from "../../utils/tokenHelper";
-import { generaterefreshTokenAndSetCookie } from "./auth.service";
-// import { capitalizeFirstLetter } from "../../utils/capitalize";
+import {
+  generaterefreshTokenAndSetCookie,
+  sendVerificationEmail,
+} from "./auth.service";
 
 export const handleRegister = async (
   req: Request,
@@ -12,13 +14,13 @@ export const handleRegister = async (
   next: NextFunction,
 ) => {
   try {
-    let { email, password , name } = req.body;
+    let { email, password, name } = req.body;
 
-    // name = capitalizeFirstLetter(name)
+    const normalizedEmail = email.toLowerCase().trim();
 
     const existingUser = await prisma.user.findFirst({
       where: {
-        email,
+        email: normalizedEmail,
       },
     });
 
@@ -26,27 +28,104 @@ export const handleRegister = async (
       return next(customError("email already exist", 400));
     }
 
+    let verificationToken: string = "123456";
+    // try {
+    //   verificationToken = await sendVerificationEmail(normalizedEmail);
+    // } catch (emailError) {
+    //   console.error("Failed to send verification email:", emailError);
+    //   return next(customError("Failed to send verification email", 500));
+    // }
+
     const hashedPass = await hashPassword(password);
 
     const user = await prisma.user.create({
       data: {
-        email,
+        email: normalizedEmail,
         password: hashedPass,
-        name
+        name,
+        verificationToken,
+        verificationTokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       },
     });
 
-    console.log(user)
-
-    const { password: _, ...userWithoutPassword } = user;
+    const userForRespons = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      gender: user.gender,
+      isEmailVerified: user.isEmailVerified,
+      twoFactorEnabled: user.twoFactorEnabled,
+      createdAt: user.createdAt,
+    };
 
     res.status(201).json({
       status: true,
-      message: "User registered successfully",
-      data: userWithoutPassword,
+      message: "User registered successfully. Please verify your email.",
+      data: userForRespons,
     });
   } catch (error) {
     console.log("error in handleRegister = ", error);
+    next(error);
+  }
+};
+
+export const verifyEmail = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { email, code } = req.body;
+
+    const user = await prisma.user.findFirst({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) {
+      return next(customError("email doesn't exist", 400));
+    }
+
+    if (user.verificationToken !== code) {
+      return next(customError("your verification Token is wrong", 400));
+    }
+
+    if (
+      user.verificationTokenExpiresAt &&
+      new Date(Date.now()) > user.verificationTokenExpiresAt
+    ) {
+      return next(customError("your verification Token has expired", 400));
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: {
+        email,
+      },
+      data: {
+        verificationToken: null,
+        verificationTokenExpiresAt: null,
+        isEmailVerified: true,
+      },
+    });
+
+    const userForRespons = {
+      id: updatedUser.id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      gender: updatedUser.gender,
+      isEmailVerified: updatedUser.isEmailVerified,
+      twoFactorEnabled: updatedUser.twoFactorEnabled,
+      createdAt: updatedUser.createdAt,
+    };
+
+    res.status(201).json({
+      status: true,
+      message: "email verified successfully",
+      data: userForRespons,
+    });
+  } catch (error) {
+    console.log("error in verifyEmail = ", error);
     next(error);
   }
 };
@@ -59,15 +138,17 @@ export const handleLogin = async (
   try {
     const { email, password } = req.body;
 
+    const normalizedEmail = email.toLowerCase().trim();
+
     const existingUser = await prisma.user.findFirst({
-      where: { email },
-      include : {
-        roles : {
-          include :{
-            role : true
-          }
-        }
-      }
+      where: { email: normalizedEmail },
+      include: {
+        roles: {
+          include: {
+            role: true,
+          },
+        },
+      },
     });
 
     if (!existingUser) {
@@ -100,7 +181,7 @@ export const handleLogin = async (
         id: existingUser.id,
         email: existingUser.email,
         accessToken,
-        roles : existingUser.roles
+        roles: existingUser.roles,
       },
     });
   } catch (error) {

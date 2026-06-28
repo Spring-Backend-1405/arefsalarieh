@@ -1,9 +1,13 @@
 import { createJwtToken } from "../../utils/tokenHelper";
-import type {  Response } from "express";
-import {env} from '../../config/env'
+import type { Response, NextFunction } from "express";
+import { env } from "../../config/env";
+import { sendEmail } from "../../config/nodemailer.config";
+import { VERIFICATION_EMAIL_TEMPLATE } from "../../utils/emailTemplates";
 
-
-export const generaterefreshTokenAndSetCookie = (res : Response , data : {id:string }) => {
+export const generaterefreshTokenAndSetCookie = (
+  res: Response,
+  data: { id: string },
+) => {
   const refreshToken = createJwtToken(
     {
       id: data.id,
@@ -20,3 +24,16 @@ export const generaterefreshTokenAndSetCookie = (res : Response , data : {id:str
 };
 
 
+
+export const sendVerificationEmail = async (email: string): Promise<string> => {
+  const verificationToken = Math.floor(100000 + Math.random() * 900000).toString(); 
+
+  const html = VERIFICATION_EMAIL_TEMPLATE.replace(
+    "{verificationCode}",
+    verificationToken
+  );
+
+  await sendEmail(email, "Verify your email", html);
+
+  return verificationToken; 
+};

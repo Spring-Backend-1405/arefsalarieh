@@ -26,6 +26,19 @@ model User {
   name      String
   isActive  Boolean  @default(true)
   isDelete  Boolean  @default(false)
+
+  verificationToken String?
+  verificationTokenExpiresAt DateTime?  
+  isEmailVerified  Boolean  @default(false)
+
+  twoFactorEnabled  Boolean  @default(false)
+  twoFactorSecret      String?
+
+  tokenVersion Int @default(0)
+
+  resetPasswordToken String?
+  resetPasswordExpires DateTime?
+  
   createdAt DateTime @default(now())
 
   profile        Profile?
