@@ -252,14 +252,22 @@ export const handleLogin = async (
       id: existingUser.id,
     });
 
+    const userForRespons = {
+      id: existingUser.id,
+      name: existingUser.name,
+      email: existingUser.email,
+      gender: existingUser.gender,
+      isEmailVerified: existingUser.isEmailVerified,
+      twoFactorEnabled: existingUser.twoFactorEnabled,
+      createdAt: existingUser.createdAt,
+    };
+
     res.status(200).json({
       status: true,
       message: "Login successful",
       data: {
-        id: existingUser.id,
-        email: existingUser.email,
+        ...userForRespons,
         accessToken,
-        roles: existingUser.roles,
       },
     });
   } catch (error) {
@@ -349,17 +357,84 @@ export async function forgotPasswordHandler(
 
     const resetUrl = `${route}?token=${rawToken}`;
 
-    // try {
-    //   await sendForgotPasswordEmail(normalizedEmail, resetUrl);
-    //   console.log("email sent");
-    // } catch (emailError) {
-    //   console.error("Failed to send forget pss email:", emailError);
-    //   return next(customError("Failed to send forget pss email", 500));
-    // }
+    try {
+      await sendForgotPasswordEmail(normalizedEmail, resetUrl);
+      console.log("email sent");
+    } catch (emailError) {
+      console.error("Failed to send forget pss email:", emailError);
+      return next(customError("Failed to send forget pss email", 500));
+    }
 
     res.json({
-      message: true,
-      resetUrl,
+      message: 'a link will send to your email',
+      
+    });
+  } catch (error) {
+    console.log("error in forgotPasswordHandler = ", error);
+    next(error);
+  }
+}
+
+export async function resetPasswordHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { email, token, password } = req.body;
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const user = await prisma.user.findFirst({
+      where: {
+        email: normalizedEmail,
+      },
+    });
+
+    if (!user) {
+      return next(customError("User doesn't exist", 400));
+    }
+
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
+    if (tokenHash !== user.resetPasswordToken) {
+      return next(customError("token is wrong", 400));
+    }
+
+    if (
+      user.resetPasswordExpires &&
+      new Date(Date.now()) > user.resetPasswordExpires
+    ) {
+      return next(customError("your reset password Token has expired", 400));
+    }
+
+    const hashedPass = await hashPassword(password);
+
+    const updatedUser = await prisma.user.update({
+      where: {
+        email: normalizedEmail,
+      },
+      data: {
+        resetPasswordToken: null,
+        resetPasswordExpires: null,
+        password: hashedPass,
+      },
+    });
+
+    const userForRespons = {
+      id: updatedUser.id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      gender: updatedUser.gender,
+      isEmailVerified: updatedUser.isEmailVerified,
+      twoFactorEnabled: updatedUser.twoFactorEnabled,
+      createdAt: updatedUser.createdAt,
+    };
+
+    res.status(201).json({
+      status: true,
+      message: "password changed successfully",
+      data: userForRespons,
     });
   } catch (error) {
     console.log("error in forgotPasswordHandler = ", error);

@@ -1,5 +1,5 @@
 import express from "express";
-import { forgotPasswordHandler, handleLogin, handleRefreshToken, handleRegister, sendVerificationTokenAgain, verifyEmail } from "./auth.controller";
+import { forgotPasswordHandler, handleLogin, handleRefreshToken, handleRegister, resetPasswordHandler, sendVerificationTokenAgain, verifyEmail } from "./auth.controller";
 import { loginValidation, registerValidation, verifyEmailValidation, verifySendVerificationTokenAgain } from "./auth.validation";
 import { validateMiddleware } from "../../middlewares/validateMiddleware";
 
@@ -11,5 +11,5 @@ authRouter.post("/send-verification-token-again",verifyEmailValidation ,verifySe
 authRouter.post("/login",loginValidation ,validateMiddleware , handleLogin);
 authRouter.post("/refresh-token", handleRefreshToken); 
 authRouter.post("/forget-password", forgotPasswordHandler);
-
+authRouter.post("/reset-password", resetPasswordHandler);
 export default authRouter;
