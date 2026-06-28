@@ -224,6 +224,10 @@ export const handleLogin = async (
       return next(customError("User doesn't exist", 400));
     }
 
+    if(!existingUser.isEmailVerified){
+      return next(customError("you havent verified your email", 400));
+    }
+
     const checkPassword = await comparePassword(
       password,
       existingUser.password,
