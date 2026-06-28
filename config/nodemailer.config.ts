@@ -1,8 +1,7 @@
 import nodemailer from "nodemailer";
-import "dotenv/config"
+import "dotenv/config";
 
-
-export async function sendEmail(to:string, subject:string, html:string) {
+export async function sendEmail(to: string, subject: string, html: string) {
   if (
     !process.env.SMTP_HOST ||
     !process.env.SMTP_USER ||
@@ -19,17 +18,23 @@ export async function sendEmail(to:string, subject:string, html:string) {
   const from = process.env.EMAIL_FROM;
 
   const transporter = nodemailer.createTransport({
-    host,
-    port,
-    secure: false,
+    // host,
+    // port,
+    // secure: false,
+    // auth: {
+    //   user,
+    //   pass,
+    // },
+    service: "gmail",
     auth: {
-      user,
-      pass,
+      user: process.env.Email_User,
+      pass: process.env.Email_Password,
     },
   });
 
   await transporter.sendMail({
-    from,
+    // from,
+    from: process.env.Email_User,
     to,
     subject,
     html,
