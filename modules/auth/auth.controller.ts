@@ -5,8 +5,10 @@ import { comparePassword, hashPassword } from "../../utils/hashPassword";
 import { checkJwtToken, createJwtToken } from "../../utils/tokenHelper";
 import {
   generaterefreshTokenAndSetCookie,
+  sendForgotPasswordEmail,
   sendVerificationEmail,
 } from "./auth.service";
+import crypto from "crypto";
 
 export const handleRegister = async (
   req: Request,
@@ -31,7 +33,7 @@ export const handleRegister = async (
     let verificationToken: string;
     try {
       verificationToken = await sendVerificationEmail(normalizedEmail);
-      console.log('email sent')
+      console.log("email sent");
     } catch (emailError) {
       console.error("Failed to send verification email:", emailError);
       return next(customError("Failed to send verification email", 500));
@@ -78,12 +80,11 @@ export const verifyEmail = async (
   try {
     const { email, code } = req.body;
 
-        const normalizedEmail = email.toLowerCase().trim();
-
+    const normalizedEmail = email.toLowerCase().trim();
 
     const user = await prisma.user.findFirst({
       where: {
-        email : normalizedEmail,
+        email: normalizedEmail,
       },
     });
 
@@ -108,7 +109,7 @@ export const verifyEmail = async (
 
     const updatedUser = await prisma.user.update({
       where: {
-        email : normalizedEmail,
+        email: normalizedEmail,
       },
       data: {
         verificationToken: null,
@@ -148,10 +149,9 @@ export const sendVerificationTokenAgain = async (
 
     const normalizedEmail = email.toLowerCase().trim();
 
-
     const user = await prisma.user.findFirst({
       where: {
-        email : normalizedEmail,
+        email: normalizedEmail,
       },
     });
 
@@ -167,10 +167,15 @@ export const sendVerificationTokenAgain = async (
       user.verificationTokenExpiresAt &&
       new Date(Date.now()) < user.verificationTokenExpiresAt
     ) {
-      return next(customError("your verification Token that has sent is still valid", 400));
+      return next(
+        customError(
+          "your verification Token that has sent is still valid",
+          400,
+        ),
+      );
     }
 
-    let verificationToken: string ;
+    let verificationToken: string;
     try {
       verificationToken = await sendVerificationEmail(normalizedEmail);
     } catch (emailError) {
@@ -180,7 +185,7 @@ export const sendVerificationTokenAgain = async (
 
     const updatedUser = await prisma.user.update({
       where: {
-        email : normalizedEmail,
+        email: normalizedEmail,
       },
       data: {
         verificationToken,
@@ -224,7 +229,7 @@ export const handleLogin = async (
       return next(customError("User doesn't exist", 400));
     }
 
-    if(!existingUser.isEmailVerified){
+    if (!existingUser.isEmailVerified) {
       return next(customError("you havent verified your email", 400));
     }
 
@@ -301,3 +306,63 @@ export const handleRefreshToken = async (
     next(error);
   }
 };
+
+export async function forgotPasswordHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { email, route } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const user = await prisma.user.findFirst({
+      where: {
+        email: normalizedEmail,
+      },
+    });
+
+    if (!user) {
+      return next(customError("User doesn't exist", 400));
+    }
+
+    const rawToken = crypto.randomBytes(32).toString("hex");
+
+    const tokenHash = crypto
+      .createHash("sha256")
+      .update(rawToken)
+      .digest("hex");
+
+    const updatedUser = await prisma.user.update({
+      where: {
+        email: normalizedEmail,
+      },
+      data: {
+        resetPasswordToken: tokenHash,
+        resetPasswordExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      },
+    });
+
+    const resetUrl = `${route}?token=${rawToken}`;
+
+    // try {
+    //   await sendForgotPasswordEmail(normalizedEmail, resetUrl);
+    //   console.log("email sent");
+    // } catch (emailError) {
+    //   console.error("Failed to send forget pss email:", emailError);
+    //   return next(customError("Failed to send forget pss email", 500));
+    // }
+
+    res.json({
+      message: true,
+      resetUrl,
+    });
+  } catch (error) {
+    console.log("error in forgotPasswordHandler = ", error);
+    next(error);
+  }
+}

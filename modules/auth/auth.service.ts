@@ -2,7 +2,10 @@ import { createJwtToken } from "../../utils/tokenHelper";
 import type { Response, NextFunction } from "express";
 import { env } from "../../config/env";
 import { sendEmail } from "../../config/nodemailer.config";
-import { VERIFICATION_EMAIL_TEMPLATE } from "../../utils/emailTemplates";
+import {
+  PASSWORD_RESET_REQUEST_TEMPLATE,
+  VERIFICATION_EMAIL_TEMPLATE,
+} from "../../utils/emailTemplates";
 
 export const generaterefreshTokenAndSetCookie = (
   res: Response,
@@ -23,17 +26,26 @@ export const generaterefreshTokenAndSetCookie = (
   });
 };
 
-
-
 export const sendVerificationEmail = async (email: string): Promise<string> => {
-  const verificationToken = Math.floor(100000 + Math.random() * 900000).toString(); 
+  const verificationToken = Math.floor(
+    100000 + Math.random() * 900000,
+  ).toString();
 
   const html = VERIFICATION_EMAIL_TEMPLATE.replace(
     "{verificationCode}",
-    verificationToken
+    verificationToken,
   );
 
   await sendEmail(email, "Verify your email", html);
 
-  return verificationToken; 
+  return verificationToken;
+};
+
+export const sendForgotPasswordEmail = async (
+  email: string,
+  resetURL: string,
+) => {
+  const html = PASSWORD_RESET_REQUEST_TEMPLATE.replace("{resetURL}", resetURL);
+
+  await sendEmail(email, "reset your pass", html);
 };
