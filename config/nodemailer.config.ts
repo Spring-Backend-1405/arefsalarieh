@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
-import dotenv from "dotenv";
-dotenv.config();
+import "dotenv/config"
+
 
 export async function sendEmail(to:string, subject:string, html:string) {
   if (

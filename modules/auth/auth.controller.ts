@@ -28,13 +28,14 @@ export const handleRegister = async (
       return next(customError("email already exist", 400));
     }
 
-    let verificationToken: string = "123456";
-    // try {
-    //   verificationToken = await sendVerificationEmail(normalizedEmail);
-    // } catch (emailError) {
-    //   console.error("Failed to send verification email:", emailError);
-    //   return next(customError("Failed to send verification email", 500));
-    // }
+    let verificationToken: string;
+    try {
+      verificationToken = await sendVerificationEmail(normalizedEmail);
+      console.log('email sent')
+    } catch (emailError) {
+      console.error("Failed to send verification email:", emailError);
+      return next(customError("Failed to send verification email", 500));
+    }
 
     const hashedPass = await hashPassword(password);
 
@@ -77,14 +78,21 @@ export const verifyEmail = async (
   try {
     const { email, code } = req.body;
 
+        const normalizedEmail = email.toLowerCase().trim();
+
+
     const user = await prisma.user.findFirst({
       where: {
-        email,
+        email : normalizedEmail,
       },
     });
 
     if (!user) {
       return next(customError("email doesn't exist", 400));
+    }
+
+    if (user.isEmailVerified) {
+      return next(customError("you alredy verified your email", 400));
     }
 
     if (user.verificationToken !== code) {
@@ -100,7 +108,7 @@ export const verifyEmail = async (
 
     const updatedUser = await prisma.user.update({
       where: {
-        email,
+        email : normalizedEmail,
       },
       data: {
         verificationToken: null,
@@ -123,6 +131,67 @@ export const verifyEmail = async (
       status: true,
       message: "email verified successfully",
       data: userForRespons,
+    });
+  } catch (error) {
+    console.log("error in verifyEmail = ", error);
+    next(error);
+  }
+};
+
+export const sendVerificationTokenAgain = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { email } = req.body;
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+
+    const user = await prisma.user.findFirst({
+      where: {
+        email : normalizedEmail,
+      },
+    });
+
+    if (!user) {
+      return next(customError("email doesn't exist", 400));
+    }
+
+    if (user.isEmailVerified) {
+      return next(customError("you alredy verified your email", 400));
+    }
+
+    if (
+      user.verificationTokenExpiresAt &&
+      new Date(Date.now()) < user.verificationTokenExpiresAt
+    ) {
+      return next(customError("your verification Token that has sent is still valid", 400));
+    }
+
+    let verificationToken: string ;
+    try {
+      verificationToken = await sendVerificationEmail(normalizedEmail);
+    } catch (emailError) {
+      console.error("Failed to send verification email:", emailError);
+      return next(customError("Failed to send verification email", 500));
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: {
+        email : normalizedEmail,
+      },
+      data: {
+        verificationToken,
+        verificationTokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      },
+    });
+
+    res.status(201).json({
+      status: true,
+      message:
+        "If an account with this email exists, we will send you a reset link",
     });
   } catch (error) {
     console.log("error in verifyEmail = ", error);
@@ -167,7 +236,7 @@ export const handleLogin = async (
       {
         id: existingUser.id,
       },
-      24 * 60 * 60,
+      24 * 60 * 60 * 1000,
     );
 
     generaterefreshTokenAndSetCookie(res, {
