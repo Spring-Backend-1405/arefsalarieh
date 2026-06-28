@@ -26,7 +26,10 @@ export const generaterefreshTokenAndSetCookie = (
   });
 };
 
-export const sendVerificationEmail = async (email: string): Promise<string> => {
+export const sendVerificationEmail = async (
+  email: string,
+  text = "Verify your email",
+): Promise<string> => {
   const verificationToken = Math.floor(
     100000 + Math.random() * 900000,
   ).toString();
@@ -36,7 +39,7 @@ export const sendVerificationEmail = async (email: string): Promise<string> => {
     verificationToken,
   );
 
-  await sendEmail(email, "Verify your email", html);
+  await sendEmail(email, text, html);
 
   return verificationToken;
 };

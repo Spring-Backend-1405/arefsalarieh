@@ -34,7 +34,6 @@ export const handleRegister = async (
     let verificationToken: string;
     try {
       verificationToken = await sendVerificationEmail(normalizedEmail);
-      console.log("email sent");
     } catch (emailError) {
       console.error("Failed to send verification email:", emailError);
       return next(customError("Failed to send verification email", 500));
@@ -234,6 +233,32 @@ export const handleLogin = async (
       return next(customError("you havent verified your email", 400));
     }
 
+    if (existingUser.twoFactorEnabled) {
+      let verificationToken: string = "123456";
+      try {
+        verificationToken = await sendVerificationEmail(normalizedEmail , 'login verify code');
+
+        const updateUser = await prisma.user.update({
+          where: {
+            email: normalizedEmail,
+          },
+          data: {
+            twoFactorSecret: verificationToken,
+            twoFactorSecretExpiresAt: new Date(
+              Date.now() + 24 * 60 * 60 * 1000,
+            ),
+          },
+        });
+        res.status(201).json({
+          status: true,
+          message: "check your email",
+        });
+      } catch (emailError) {
+        console.error("Failed to send 2fa email:", emailError);
+        return next(customError("Failed to send 2fa email", 500));
+      }
+    }
+
     const checkPassword = await comparePassword(
       password,
       existingUser.password,
@@ -263,7 +288,87 @@ export const handleLogin = async (
       createdAt: existingUser.createdAt,
     };
 
-    res.status(200).json({
+    res.status(201).json({
+      status: true,
+      message: "Login successful",
+      data: {
+        ...userForRespons,
+        accessToken,
+      },
+    });
+  } catch (error) {
+    console.log("error in handleLogin = ", error);
+    next(error);
+  }
+};
+
+export const handleLoginSteptwo = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { email, token } = req.body;
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const existingUser = await prisma.user.findFirst({
+      where: { email: normalizedEmail },
+      include: {
+        roles: {
+          include: {
+            role: true,
+          },
+        },
+      },
+    });
+
+    if (!existingUser) {
+      return next(customError("User doesn't exist", 400));
+    }
+
+    if (!existingUser.isEmailVerified) {
+      return next(customError("you havent verified your email", 400));
+    }
+
+    if (!existingUser.twoFactorEnabled) {
+      return next(customError("you havent actived 2fa", 400));
+    }
+
+    if (existingUser.twoFactorSecret !== token) {
+      return next(customError("your code is wrong", 400));
+    }
+
+    if (
+      existingUser.twoFactorSecretExpiresAt &&
+      new Date(Date.now()) > existingUser.twoFactorSecretExpiresAt
+    ) {
+      return next(customError("your 2fa Token has expired", 400));
+    }
+
+
+    const accessToken = createJwtToken(
+      {
+        id: existingUser.id,
+      },
+      24 * 60 * 60 * 1000,
+    );
+
+    generaterefreshTokenAndSetCookie(res, {
+      id: existingUser.id,
+    });
+
+    const userForRespons = {
+      id: existingUser.id,
+      name: existingUser.name,
+      email: existingUser.email,
+      gender: existingUser.gender,
+      isEmailVerified: existingUser.isEmailVerified,
+      twoFactorEnabled: existingUser.twoFactorEnabled,
+      createdAt: existingUser.createdAt,
+    };
+
+    res.status(201).json({
       status: true,
       message: "Login successful",
       data: {
@@ -360,7 +465,6 @@ export async function forgotPasswordHandler(
 
     try {
       await sendForgotPasswordEmail(normalizedEmail, resetUrl);
-      console.log("email sent");
     } catch (emailError) {
       console.error("Failed to send forget pss email:", emailError);
       return next(customError("Failed to send forget pss email", 500));
