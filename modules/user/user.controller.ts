@@ -10,6 +10,7 @@ import {
   handleQuery,
   handleUpdateUser,
 } from "./user.servece";
+import { FilesUploaded } from "./userTypes";
 
 export const getUserProfile = async (
   req: Request,
@@ -21,14 +22,13 @@ export const getUserProfile = async (
 
     const { id } = authReq.user;
 
-    const existingUser = await findUser({ id } , {profile : true});
+    const existingUser = await findUser({ id }, { profile: true });
 
     if (!existingUser) {
       return next(customError("User not found", 404));
     }
 
-  const { password: _, ...userWithoutPassword } = existingUser;
-
+    const { password: _, ...userWithoutPassword } = existingUser;
 
     res.status(200).json({
       status: true,
@@ -117,6 +117,55 @@ export const getAllUsers = async (
     });
   } catch (error) {
     console.log("error in getAllUsers = ", error);
+    next(error);
+  }
+};
+
+export const uploadProfileImages = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const authReq = req as any;
+    const { id } = authReq.user;
+
+    if (!req.files || (req.files as Express.Multer.File[]).length === 0) {
+      return next(customError("No files uploaded", 400));
+    }
+
+    const imagesArray: Express.Multer.File[] = req.files as any;
+    const addedImages: any[] = [];
+
+  
+    await prisma.userPictures.updateMany({
+      where: { userId: id, isMain: true },
+      data: { isMain: false },
+    });
+
+    for (let i = 0; i < imagesArray.length; i++) {
+      const item = imagesArray[i];
+      const isMain = i === 0;
+
+      const newImage = await prisma.userPictures.create({
+        data: {
+          userId: id,
+          filename: item.filename,
+          path: item.path,
+          mimetype: item.mimetype,
+          size: item.size,
+          isMain: isMain,
+        },
+      });
+      addedImages.push(newImage);
+    }
+
+    res.status(201).json({
+      status: true,
+      data: addedImages,
+    });
+  } catch (error) {
+    console.log("error in uploadProfileImages = ", error);
     next(error);
   }
 };

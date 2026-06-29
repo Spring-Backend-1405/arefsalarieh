@@ -13,3 +13,9 @@ export interface UpdateProfileData {
   bio?: string;
 }
 
+export interface FilesUploaded {
+  filename : string;
+  path : string;
+  mimetype : string;
+  size : number
+}

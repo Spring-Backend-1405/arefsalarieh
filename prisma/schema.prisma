@@ -40,13 +40,14 @@ model User {
 
   qrCodeEnabled         Boolean   @default(false)
   qrCodeSecret          String?
-  qrCodeSecretExpiresAt DateTime?  
+  qrCodeSecretExpiresAt DateTime?
 
   createdAt DateTime @default(now())
 
-  profile        Profile?
-  roles          UserRole[]
-  userPermission UserPermission[]
+  profile         Profile?
+  roles           UserRole[]
+  userPermission  UserPermission[]
+  userPictures UserPictures[]
 }
 
 model Profile {
@@ -56,11 +57,22 @@ model Profile {
   state     String?
   city      String?
   address   String?
-  avatar    String?
   bio       String?
   createdAt DateTime @default(now())
 
   userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserPictures {
+  id       String  @id @default(uuid())
+  filename String
+  path     String
+  mimetype String
+  size     Int
+  isMain   Boolean @default(false)
+
+  userId String 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
