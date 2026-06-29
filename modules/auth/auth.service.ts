@@ -31,10 +31,7 @@ export const generaterefreshTokenAndSetCookie = (
   });
 };
 
-export const sendVerificationEmail = async (
-  email: string,
-  text = "Verify your email",
-): Promise<string> => {
+export const sendVerificationEmail = async (email: string): Promise<string> => {
   const verificationToken = Math.floor(
     100000 + Math.random() * 900000,
   ).toString();
@@ -44,40 +41,26 @@ export const sendVerificationEmail = async (
     verificationToken,
   );
 
-  await sendEmail(email, text, html);
+  await sendEmail(email, "Verify your email", html);
 
   return verificationToken;
 };
 
 export const sendVerificationEmailInLogin = async (
-  normalizedEmail: string,
-  res: Response,
-  next: NextFunction,
+  email: string,
 ) => {
-  let verificationToken: string;
-  try {
-    verificationToken = await sendVerificationEmail(
-      normalizedEmail,
-      "login verify code",
-    );
+  const loginVerificationToken = Math.floor(
+    100000 + Math.random() * 900000,
+  ).toString();
 
-    const updateUser = await prisma.user.update({
-      where: {
-        email: normalizedEmail,
-      },
-      data: {
-        twoFactorSecret: verificationToken,
-        twoFactorSecretExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      },
-    });
-    return res.status(201).json({
-      status: true,
-      message: "check your email",
-    });
-  } catch (emailError) {
-    console.error("Failed to send 2fa email:", emailError);
-    return next(customError("Failed to send 2fa email", 500));
-  }
+  const html = VERIFICATION_EMAIL_TEMPLATE.replace(
+    "{verificationCode}",
+    loginVerificationToken,
+  );
+
+  await sendEmail(email, "Verify your login", html);
+
+  return loginVerificationToken;
 };
 
 export const sedLinkForQrCode = async (
@@ -106,7 +89,7 @@ export const sedLinkForQrCode = async (
       },
     });
   } catch (error) {
-    console.error("Failed to send qr code:", error);
+    console.log("Failed to send qr code:", error);
     return next(customError("Failed to send qr code:", 500));
   }
 };
@@ -135,3 +118,40 @@ export function getGoogleClient() {
     redirectUri,
   });
 }
+
+export const userForResponse = (user: any) => {
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    gender: user.gender,
+    isEmailVerified: user.isEmailVerified,
+    twoFactorEnabled: user.twoFactorEnabled,
+    qrCodeEnabled: user.qrCodeEnabled,
+    createdAt: user.createdAt,
+  };
+};
+
+export const createTokenForResponse = async (
+  existingUser: any,
+  res: Response,
+  next: NextFunction,
+): Promise<any> => {
+  try {
+    const accessToken = createJwtToken(
+      {
+        id: existingUser.id,
+      },
+      24 * 60 * 60 * 1000,
+    );
+
+    generaterefreshTokenAndSetCookie(res, {
+      id: existingUser.id,
+    });
+
+    return accessToken;
+  } catch (error) {
+    console.log("Failed to createTokenAndResponse", error);
+    return next(customError("Failed to createTokenAndResponse", 500));
+  }
+};

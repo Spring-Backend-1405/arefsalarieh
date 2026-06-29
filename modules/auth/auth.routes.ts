@@ -1,5 +1,5 @@
 import express from "express";
-import { activeQRcode, activeTwoStepVerification, deActiveTwoStepVerification, forgotPasswordHandler, googleAuthCallbackHandler, googleAuthStartHandler, handleLogin, handleLoginSteptwo, handleRefreshToken, handleRegister, qrCodeHandler, resetPasswordHandler, sendVerificationTokenAgain, verifyEmail } from "./auth.controller";
+import { activeQRcode, activeTwoStepVerification, deActiveQRcode, deActiveTwoStepVerification, forgotPasswordHandler, googleAuthCallbackHandler, googleAuthStartHandler, handleLogin, handleLoginSteptwo, handleRefreshToken, handleRegister, qrCodeHandler, resetPasswordHandler, sendVerificationTokenAgain, verifyEmail } from "./auth.controller";
 import { loginValidation, registerValidation, verifyEmailValidation, verifySendVerificationTokenAgain } from "./auth.validation";
 import { validateMiddleware } from "../../middlewares/validateMiddleware";
 import { checkAuthentication } from "../../middlewares/authMiddleware";
@@ -17,7 +17,8 @@ authRouter.post("/reset-password", resetPasswordHandler);
 authRouter.put("/active-2fa",checkAuthentication , activeTwoStepVerification);
 authRouter.put("/deAactive-2fa",checkAuthentication , deActiveTwoStepVerification);
 authRouter.put("/active-qrcode",checkAuthentication , activeQRcode);
-authRouter.put("/qrcode" , qrCodeHandler);
+authRouter.put("/deAactive-qrcode",checkAuthentication , deActiveQRcode);
+authRouter.post("/qrcode" , qrCodeHandler);
 authRouter.get("/google-step-one", googleAuthStartHandler);
 authRouter.get("/google/callback", googleAuthCallbackHandler);
 

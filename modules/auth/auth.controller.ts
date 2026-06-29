@@ -4,17 +4,18 @@ import { customError } from "../../utils/customError";
 import { comparePassword, hashPassword } from "../../utils/hashPassword";
 import { checkJwtToken, createJwtToken } from "../../utils/tokenHelper";
 import {
+  createTokenForResponse,
   generaterefreshTokenAndSetCookie,
   getGoogleClient,
   sedLinkForQrCode,
   sendForgotPasswordEmail,
   sendVerificationEmail,
   sendVerificationEmailInLogin,
+  userForResponse,
 } from "./auth.service";
 import crypto from "crypto";
 import { findUser } from "../user/user.servece";
 import { authenticator } from "otplib";
-import { env } from "../../config/env";
 
 export const handleRegister = async (
   req: Request,
@@ -56,15 +57,7 @@ export const handleRegister = async (
       },
     });
 
-    const userForRespons = {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      gender: user.gender,
-      isEmailVerified: user.isEmailVerified,
-      twoFactorEnabled: user.twoFactorEnabled,
-      createdAt: user.createdAt,
-    };
+    const userForRespons = userForResponse(user);
 
     res.status(201).json({
       status: true,
@@ -123,15 +116,7 @@ export const verifyEmail = async (
       },
     });
 
-    const userForRespons = {
-      id: updatedUser.id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      gender: updatedUser.gender,
-      isEmailVerified: updatedUser.isEmailVerified,
-      twoFactorEnabled: updatedUser.twoFactorEnabled,
-      createdAt: updatedUser.createdAt,
-    };
+    const userForRespons = userForResponse(updatedUser);
 
     res.status(201).json({
       status: true,
@@ -247,34 +232,37 @@ export const handleLogin = async (
     }
 
     if (existingUser.twoFactorEnabled) {
-      return sendVerificationEmailInLogin(normalizedEmail, res, next);
+      try {
+        let loginVerificationToken: string;
+        loginVerificationToken = await sendVerificationEmailInLogin(normalizedEmail);
+         await prisma.user.update({
+          where: {
+            email: normalizedEmail,
+          },
+          data: {
+            twoFactorSecret: loginVerificationToken,
+            twoFactorSecretExpiresAt: new Date(
+              Date.now() + 24 * 60 * 60 * 1000,
+            ),
+          },
+        });
+        return res.status(201).json({
+          status: true,
+          message: "check your email",
+        });
+      } catch (emailError) {
+        console.error("Failed to send login verification email:", emailError);
+        return next(customError("Failed to send login verification email", 500));
+      }
     }
 
     if (existingUser.qrCodeEnabled) {
       return sedLinkForQrCode(existingUser, res, next);
     }
 
-    const accessToken = createJwtToken(
-      {
-        id: existingUser.id,
-      },
-      24 * 60 * 60 * 1000,
-    );
+    const userForRespons = userForResponse(existingUser);
 
-    generaterefreshTokenAndSetCookie(res, {
-      id: existingUser.id,
-    });
-
-    const userForRespons = {
-      id: existingUser.id,
-      name: existingUser.name,
-      email: existingUser.email,
-      gender: existingUser.gender,
-      isEmailVerified: existingUser.isEmailVerified,
-      twoFactorEnabled: existingUser.twoFactorEnabled,
-      qrCodeEnabled: existingUser.qrCodeEnabled,
-      createdAt: existingUser.createdAt,
-    };
+    const accessToken = await createTokenForResponse(existingUser, res, next);
 
     res.status(201).json({
       status: true,
@@ -353,15 +341,7 @@ export const handleLoginSteptwo = async (
       id: existingUser.id,
     });
 
-    const userForRespons = {
-      id: existingUser.id,
-      name: existingUser.name,
-      email: existingUser.email,
-      gender: existingUser.gender,
-      isEmailVerified: existingUser.isEmailVerified,
-      twoFactorEnabled: existingUser.twoFactorEnabled,
-      createdAt: existingUser.createdAt,
-    };
+    const userForRespons = userForResponse(existingUser);
 
     res.status(201).json({
       status: true,
@@ -520,15 +500,7 @@ export async function resetPasswordHandler(
       },
     });
 
-    const userForRespons = {
-      id: updatedUser.id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      gender: updatedUser.gender,
-      isEmailVerified: updatedUser.isEmailVerified,
-      twoFactorEnabled: updatedUser.twoFactorEnabled,
-      createdAt: updatedUser.createdAt,
-    };
+    const userForRespons = userForResponse(updatedUser);
 
     res.status(201).json({
       status: true,
@@ -580,16 +552,7 @@ export async function activeTwoStepVerification(
       },
     });
 
-    const userForRespons = {
-      id: updatedUser.id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      gender: updatedUser.gender,
-      isEmailVerified: updatedUser.isEmailVerified,
-      twoFactorEnabled: updatedUser.twoFactorEnabled,
-      qrCodeEnabled: updatedUser.qrCodeEnabled,
-      createdAt: updatedUser.createdAt,
-    };
+    const userForRespons = userForResponse(updatedUser);
 
     res.status(201).json({
       status: true,
@@ -640,15 +603,7 @@ export async function deActiveTwoStepVerification(
       },
     });
 
-    const userForRespons = {
-      id: updatedUser.id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      gender: updatedUser.gender,
-      isEmailVerified: updatedUser.isEmailVerified,
-      twoFactorEnabled: updatedUser.twoFactorEnabled,
-      createdAt: updatedUser.createdAt,
-    };
+    const userForRespons = userForResponse(updatedUser);
 
     res.status(201).json({
       status: true,
@@ -760,15 +715,7 @@ export async function googleAuthCallbackHandler(
 
     generaterefreshTokenAndSetCookie(res, { id: user.id });
 
-    const userForRespons = {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      gender: user.gender,
-      isEmailVerified: user.isEmailVerified,
-      twoFactorEnabled: user.twoFactorEnabled,
-      createdAt: user.createdAt,
-    };
+    const userForRespons = userForResponse(user);
 
     res.status(200).json({
       status: true,
@@ -813,20 +760,6 @@ export async function activeQRcode(
     if (user?.qrCodeEnabled) {
       return next(customError("you already active qr code", 404));
     }
-
-    // const secret = authenticator.generateSecret();
-
-    // const issuer = env.appName;
-
-    // const otpAuthUrl = authenticator.keyuri(user.email, issuer, secret);
-
-    // const updatedUser = await prisma.user.update({
-    //   where: { id: authUser.id },
-    //   data: {
-    //     qrCodeSecret: secret,
-    //     qrCodeSecretExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-    //   },
-    // });
 
     const updatedUser = await prisma.user.update({
       where: { id: authUser.id },
@@ -916,16 +849,7 @@ export async function qrCodeHandler(
       id: existingUser.id,
     });
 
-    const userForRespons = {
-      id: existingUser.id,
-      name: existingUser.name,
-      email: existingUser.email,
-      gender: existingUser.gender,
-      isEmailVerified: existingUser.isEmailVerified,
-      twoFactorEnabled: existingUser.twoFactorEnabled,
-      qrCodeEnabled: existingUser.qrCodeEnabled,
-      createdAt: existingUser.createdAt,
-    };
+    const userForRespons = userForResponse(existingUser);
 
     res.status(201).json({
       status: true,
@@ -935,10 +859,62 @@ export async function qrCodeHandler(
         accessToken,
       },
     });
-  } catch (err) {
-    console.log(err);
-    return res.status(500).json({
-      message: "Internal server error",
+  } catch (error) {
+  console.log("error in qrCodeHandler = ", error);
+    next(error);
+  }
+}
+
+
+export async function deActiveQRcode(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const authReq = req as any;
+  const authUser = authReq.user;
+
+  const { password } = authReq.body;
+
+  if (!authUser) {
+    return next(customError("Not authenticated", 400));
+  }
+
+  try {
+    const user = await findUser({ id: authUser.id });
+
+    if (!user) {
+      return next(customError("User not found", 400));
+    }
+
+    const checkPassword = await comparePassword(password, user.password);
+    if (!checkPassword) {
+      return next(customError("Password is wrong", 404));
+    }
+
+    if (!user?.qrCodeEnabled) {
+      return next(customError("your qr code login is already deActive", 404));
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: authUser.id },
+      data: {
+        qrCodeEnabled: false,
+      },
     });
+
+    return res.status(201).json({
+      message: "qr code deActive successfully",
+      data: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        qrCodeEnabled: updatedUser.qrCodeEnabled,
+        twoFactorEnabled: updatedUser.twoFactorEnabled,
+      },
+    });
+  } catch (error) {
+    console.log("error in deActiveQRcode = ", error);
+    next(error);
   }
 }
