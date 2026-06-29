@@ -8,6 +8,7 @@ import {
   getGoogleClient,
   sendForgotPasswordEmail,
   sendVerificationEmail,
+  sendVerificationEmailInLogin,
 } from "./auth.service";
 import crypto from "crypto";
 import { findUser } from "../user/user.servece";
@@ -215,16 +216,16 @@ export const handleLogin = async (
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    const existingUser = await prisma.user.findFirst({
-      where: { email: normalizedEmail },
-      include: {
+    const existingUser = await findUser(
+      { email: normalizedEmail },
+      {
         roles: {
           include: {
             role: true,
           },
         },
       },
-    });
+    );
 
     if (!existingUser) {
       return next(customError("User doesn't exist", 400));
@@ -235,32 +236,7 @@ export const handleLogin = async (
     }
 
     if (existingUser.twoFactorEnabled) {
-      let verificationToken: string = "123456";
-      try {
-        verificationToken = await sendVerificationEmail(
-          normalizedEmail,
-          "login verify code",
-        );
-
-        const updateUser = await prisma.user.update({
-          where: {
-            email: normalizedEmail,
-          },
-          data: {
-            twoFactorSecret: verificationToken,
-            twoFactorSecretExpiresAt: new Date(
-              Date.now() + 24 * 60 * 60 * 1000,
-            ),
-          },
-        });
-        res.status(201).json({
-          status: true,
-          message: "check your email",
-        });
-      } catch (emailError) {
-        console.error("Failed to send 2fa email:", emailError);
-        return next(customError("Failed to send 2fa email", 500));
-      }
+      sendVerificationEmailInLogin(normalizedEmail, res, next);
     }
 
     const checkPassword = await comparePassword(
@@ -312,7 +288,7 @@ export const handleLoginSteptwo = async (
   next: NextFunction,
 ) => {
   try {
-    const { email, token } = req.body;
+    const { email, password, token } = req.body;
 
     const normalizedEmail = email.toLowerCase().trim();
 
@@ -348,6 +324,14 @@ export const handleLoginSteptwo = async (
       new Date(Date.now()) > existingUser.twoFactorSecretExpiresAt
     ) {
       return next(customError("your 2fa Token has expired", 400));
+    }
+
+    const checkPassword = await comparePassword(
+      password,
+      existingUser.password,
+    );
+    if (!checkPassword) {
+      return next(customError("Password is wrong", 404));
     }
 
     const accessToken = createJwtToken(
@@ -558,8 +542,21 @@ export async function activeTwoStepVerification(
     const authReq = req as any;
 
     const { id } = authReq.user;
+    const { password } = authReq.body;
 
-    const existingUser = await findUser({ id });
+    const existingUser = await findUser({ id }, { profile: true });
+
+    if (!existingUser) {
+      return next(customError("User doesn't exist", 400));
+    }
+
+    const checkPassword = await comparePassword(
+      password,
+      existingUser.password,
+    );
+    if (!checkPassword) {
+      return next(customError("Password is wrong", 404));
+    }
 
     if (existingUser?.twoFactorEnabled) {
       return next(customError("you already active 2fa", 404));
@@ -591,6 +588,65 @@ export async function activeTwoStepVerification(
     });
   } catch (error) {
     console.log("error in forgotPasswordHandler = ", error);
+    next(error);
+  }
+}
+
+export async function deActiveTwoStepVerification(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const authReq = req as any;
+
+    const { id } = authReq.user;
+    const { password } = authReq.body;
+
+    const existingUser = await findUser({ id }, { profile: true });
+
+    if (!existingUser) {
+      return next(customError("User doesn't exist", 400));
+    }
+
+    const checkPassword = await comparePassword(
+      password,
+      existingUser.password,
+    );
+    if (!checkPassword) {
+      return next(customError("Password is wrong", 404));
+    }
+
+    if (!existingUser?.twoFactorEnabled) {
+      return next(customError("you already deActive 2fa", 404));
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        twoFactorEnabled: false,
+      },
+    });
+
+    const userForRespons = {
+      id: updatedUser.id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      gender: updatedUser.gender,
+      isEmailVerified: updatedUser.isEmailVerified,
+      twoFactorEnabled: updatedUser.twoFactorEnabled,
+      createdAt: updatedUser.createdAt,
+    };
+
+    res.status(201).json({
+      status: true,
+      message: "2fa disabled successfully",
+      data: userForRespons,
+    });
+  } catch (error) {
+    console.log("error in deActiveTwoStepVerification = ", error);
     next(error);
   }
 }
@@ -644,16 +700,16 @@ export async function googleAuthCallbackHandler(
         headers: {
           Authorization: `Bearer ${tokens.access_token}`,
         },
-      }
+      },
     );
 
     if (!userInfoResponse.ok) {
       throw new Error(
-        `Failed to get user info: ${userInfoResponse.statusText}`
+        `Failed to get user info: ${userInfoResponse.statusText}`,
       );
     }
 
-    const userInfo = await userInfoResponse.json() as any;
+    const userInfo = (await userInfoResponse.json()) as any;
 
     const email = userInfo.email;
     const name = userInfo.name || "";
@@ -690,10 +746,7 @@ export async function googleAuthCallbackHandler(
       }
     }
 
-    const accessToken = createJwtToken(
-      { id: user.id },
-      24 * 60 * 60 * 1000
-    );
+    const accessToken = createJwtToken({ id: user.id }, 24 * 60 * 60 * 1000);
 
     generaterefreshTokenAndSetCookie(res, { id: user.id });
 

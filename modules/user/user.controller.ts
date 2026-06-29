@@ -21,15 +21,18 @@ export const getUserProfile = async (
 
     const { id } = authReq.user;
 
-    const existingUser = await findUser({ id });
+    const existingUser = await findUser({ id } , {profile : true});
 
     if (!existingUser) {
       return next(customError("User not found", 404));
     }
 
+  const { password: _, ...userWithoutPassword } = existingUser;
+
+
     res.status(200).json({
       status: true,
-      data: existingUser,
+      data: userWithoutPassword,
     });
   } catch (error) {
     console.log("error in getUserProfile = ", error);

@@ -4,21 +4,20 @@ import { prisma } from "../../utils/prisma";
 import { UpdateProfileData, UpdateUserData } from "./userTypes";
 import type { Request } from "express";
 
-export const findUser = async (obj: any) => {
+export const findUser = async (condition: any , include : any) => {
   const user = await prisma.user.findFirst({
     where: {
-      ...obj,
+      ...condition,
     },
     include: {
-      profile: true,
+      ...include,
     },
   });
 
   if (!user) return null;
 
-  const { password: _, ...userWithoutPassword } = user;
 
-  return userWithoutPassword;
+  return user;
 };
 
 export const checkEmail = async (email: string, userId: string) => {

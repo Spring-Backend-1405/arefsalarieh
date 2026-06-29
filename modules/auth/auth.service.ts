@@ -1,4 +1,4 @@
-import  "dotenv/config";
+import "dotenv/config";
 import { createJwtToken } from "../../utils/tokenHelper";
 import type { Response, NextFunction } from "express";
 import { env } from "../../config/env";
@@ -8,6 +8,8 @@ import {
   PASSWORD_RESET_REQUEST_TEMPLATE,
   VERIFICATION_EMAIL_TEMPLATE,
 } from "../../utils/emailTemplates";
+import { customError } from "../../utils/customError";
+import { prisma } from "../../utils/prisma";
 
 export const generaterefreshTokenAndSetCookie = (
   res: Response,
@@ -46,6 +48,33 @@ export const sendVerificationEmail = async (
   return verificationToken;
 };
 
+export const sendVerificationEmailInLogin = async (normalizedEmail : string ,res : Response , next : NextFunction) => {
+  let verificationToken: string;
+  try {
+    verificationToken = await sendVerificationEmail(
+      normalizedEmail,
+      "login verify code",
+    );
+
+    const updateUser = await prisma.user.update({
+      where: {
+        email: normalizedEmail,
+      },
+      data: {
+        twoFactorSecret: verificationToken,
+        twoFactorSecretExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      },
+    });
+    return res.status(201).json({
+      status: true,
+      message: "check your email",
+    });
+  } catch (emailError) {
+    console.error("Failed to send 2fa email:", emailError);
+    return next(customError("Failed to send 2fa email", 500));
+  }
+};
+
 export const sendForgotPasswordEmail = async (
   email: string,
   resetURL: string,
@@ -54,7 +83,6 @@ export const sendForgotPasswordEmail = async (
 
   await sendEmail(email, "reset your pass", html);
 };
-
 
 export function getGoogleClient() {
   const clientId = process.env.GOOGLE_CLIENT_ID;
