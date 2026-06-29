@@ -1,6 +1,6 @@
 import express from "express";
 import { validateMiddleware } from "../../middlewares/validateMiddleware";
-import { getAllUsers, getUserProfile, updateProfile, uploadProfileImages } from "./user.controller";
+import { getAllUsers, getUserImages, getUserProfile, updateProfile, uploadProfileImages } from "./user.controller";
 import {
   checkAuthentication,
   requirePermission,
@@ -12,6 +12,7 @@ import upload from "../../middlewares/upload";
 const userRouter = express.Router();
 
 userRouter.get("/profile", checkAuthentication, getUserProfile);
+userRouter.get("/user-images", checkAuthentication, getUserImages);
 
 userRouter.put(
   "/update-profile",

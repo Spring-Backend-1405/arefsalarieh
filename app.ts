@@ -29,7 +29,8 @@ export const createApp = () => {
   app.use("/api/role-permission", rolePermissionRouter);
   app.use("/api/user-permission-exception", userPermissionException);
 
-  app.use("/files", express.static("uploads"));
+app.use('/uploads', express.static('uploads'));
+
 
   app.use(errorMiddleware);
 

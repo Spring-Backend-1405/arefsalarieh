@@ -19,16 +19,31 @@ export const getUserProfile = async (
 ) => {
   try {
     const authReq = req as any;
-
     const { id } = authReq.user;
 
-    const existingUser = await findUser({ id }, { profile: true });
+    const existingUser = await findUser(
+      { id },
+      { profile: true, userPictures: true },
+    );
 
     if (!existingUser) {
       return next(customError("User not found", 404));
     }
 
-    const { password: _, ...userWithoutPassword } = existingUser;
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+
+    const userWithImageUrls = {
+      ...existingUser,
+      userPictures: existingUser.userPictures.map((pic: any) => {
+        const filename = pic.path.split(/[\\/]/).pop();
+        return {
+          ...pic,
+          url: `${baseUrl}/uploads/${filename}`,
+        };
+      }),
+    };
+
+    const { password: _, ...userWithoutPassword } = userWithImageUrls;
 
     res.status(200).json({
       status: true,
@@ -137,7 +152,6 @@ export const uploadProfileImages = async (
     const imagesArray: Express.Multer.File[] = req.files as any;
     const addedImages: any[] = [];
 
-  
     await prisma.userPictures.updateMany({
       where: { userId: id, isMain: true },
       data: { isMain: false },
@@ -151,7 +165,7 @@ export const uploadProfileImages = async (
         data: {
           userId: id,
           filename: item.filename,
-          path: item.path,
+          path: item.filename,
           mimetype: item.mimetype,
           size: item.size,
           isMain: isMain,
@@ -166,6 +180,43 @@ export const uploadProfileImages = async (
     });
   } catch (error) {
     console.log("error in uploadProfileImages = ", error);
+    next(error);
+  }
+};
+
+export const getUserImages = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const authReq = req as any;
+    const { id } = authReq.user;
+
+    const existingUser = await findUser({ id }, { userPictures: true });
+
+    if (!existingUser) {
+      return next(customError("User not found", 404));
+    }
+
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+
+    const imageUrls = {
+      userPictures: existingUser.userPictures.map((pic: any) => {
+        const filename = pic.path.split(/[\\/]/).pop();
+        return {
+          ...pic,
+          url: `${baseUrl}/uploads/${filename}`,
+        };
+      }),
+    };
+
+    res.status(200).json({
+      status: true,
+      data: imageUrls,
+    });
+  } catch (error) {
+    console.log("error in getUserImages = ", error);
     next(error);
   }
 };
