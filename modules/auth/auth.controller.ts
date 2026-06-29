@@ -247,11 +247,11 @@ export const handleLogin = async (
     }
 
     if (existingUser.twoFactorEnabled) {
-     return sendVerificationEmailInLogin(normalizedEmail, res, next);
+      return sendVerificationEmailInLogin(normalizedEmail, res, next);
     }
 
     if (existingUser.qrCodeEnabled) {
-     return sedLinkForQrCode(existingUser , res , next)
+      return sedLinkForQrCode(existingUser, res, next);
     }
 
     const accessToken = createJwtToken(
@@ -272,6 +272,7 @@ export const handleLogin = async (
       gender: existingUser.gender,
       isEmailVerified: existingUser.isEmailVerified,
       twoFactorEnabled: existingUser.twoFactorEnabled,
+      qrCodeEnabled: existingUser.qrCodeEnabled,
       createdAt: existingUser.createdAt,
     };
 
@@ -851,49 +852,88 @@ export async function activeQRcode(
   }
 }
 
-export async function qrCodeHandler(req: Request, res: Response) {
-  const authReq = req as any;
-  const authUser = authReq.user;
-
-  if (!authUser) {
-    return res.status(401).json({
-      message: "Not authenticated",
-    });
-  }
-
-  const { code } = req.body as { code?: string };
-
-  if (!code) {
-    return res.status(400).json({
-      message: "Two factor code is required",
-    });
-  }
-
+export async function qrCodeHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
-    const user = await findUser({ id: authUser.id });
-    if (!user) {
-      return res.status(404).json({
-        message: "User not found",
-      });
+    const { email, password, code } = req.body;
+
+    if (!code) {
+      return next(customError("Two factor code is required", 400));
     }
 
-    if (!user.qrCodeSecret) {
-      return res.status(400).json({
-        message: "You dont have 2fa setup yet.",
-      });
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const existingUser = await findUser(
+      { email: normalizedEmail },
+      {
+        roles: {
+          include: {
+            role: true,
+          },
+        },
+      },
+    );
+
+    if (!existingUser) {
+      return next(customError("User doesn't exist", 400));
+    }
+    const checkPassword = await comparePassword(
+      password,
+      existingUser.password,
+    );
+    if (!checkPassword) {
+      return next(customError("Password is wrong", 404));
     }
 
-    const isValid = authenticator.check(code, user.qrCodeSecret);
+    if (!existingUser.qrCodeSecret) {
+      return next(customError("You dont have qr code setup yet.", 400));
+    }
+
+    if (
+      existingUser.qrCodeSecretExpiresAt &&
+      new Date(Date.now()) > existingUser.qrCodeSecretExpiresAt
+    ) {
+      return next(customError("your qr code has expired", 400));
+    }
+
+    const isValid = authenticator.check(code, existingUser.qrCodeSecret);
 
     if (!isValid) {
-      return res.status(400).json({
-        message: "Invalid two factor code",
-      });
+      return next(customError("Invalid code", 400));
     }
 
-    return res.json({
-      message: "2FA enabled successfully",
-      twoFactorEnabled: true,
+    const accessToken = createJwtToken(
+      {
+        id: existingUser.id,
+      },
+      24 * 60 * 60 * 1000,
+    );
+
+    generaterefreshTokenAndSetCookie(res, {
+      id: existingUser.id,
+    });
+
+    const userForRespons = {
+      id: existingUser.id,
+      name: existingUser.name,
+      email: existingUser.email,
+      gender: existingUser.gender,
+      isEmailVerified: existingUser.isEmailVerified,
+      twoFactorEnabled: existingUser.twoFactorEnabled,
+      qrCodeEnabled: existingUser.qrCodeEnabled,
+      createdAt: existingUser.createdAt,
+    };
+
+    res.status(201).json({
+      status: true,
+      message: "Login successful",
+      data: {
+        ...userForRespons,
+        accessToken,
+      },
     });
   } catch (err) {
     console.log(err);

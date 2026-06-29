@@ -17,7 +17,7 @@ authRouter.post("/reset-password", resetPasswordHandler);
 authRouter.put("/active-2fa",checkAuthentication , activeTwoStepVerification);
 authRouter.put("/deAactive-2fa",checkAuthentication , deActiveTwoStepVerification);
 authRouter.put("/active-qrcode",checkAuthentication , activeQRcode);
-authRouter.put("/qrcode",checkAuthentication , qrCodeHandler);
+authRouter.put("/qrcode" , qrCodeHandler);
 authRouter.get("/google-step-one", googleAuthStartHandler);
 authRouter.get("/google/callback", googleAuthCallbackHandler);
 
