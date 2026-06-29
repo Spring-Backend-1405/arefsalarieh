@@ -10,6 +10,7 @@ import {
 } from "../../utils/emailTemplates";
 import { customError } from "../../utils/customError";
 import { prisma } from "../../utils/prisma";
+import { authenticator } from "otplib";
 
 export const generaterefreshTokenAndSetCookie = (
   res: Response,
@@ -48,7 +49,11 @@ export const sendVerificationEmail = async (
   return verificationToken;
 };
 
-export const sendVerificationEmailInLogin = async (normalizedEmail : string ,res : Response , next : NextFunction) => {
+export const sendVerificationEmailInLogin = async (
+  normalizedEmail: string,
+  res: Response,
+  next: NextFunction,
+) => {
   let verificationToken: string;
   try {
     verificationToken = await sendVerificationEmail(
@@ -72,6 +77,37 @@ export const sendVerificationEmailInLogin = async (normalizedEmail : string ,res
   } catch (emailError) {
     console.error("Failed to send 2fa email:", emailError);
     return next(customError("Failed to send 2fa email", 500));
+  }
+};
+
+export const sedLinkForQrCode = async (
+  existingUser: any,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const secret = authenticator.generateSecret();
+    const issuer = env.appName;
+    const otpAuthUrl = authenticator.keyuri(existingUser.email, issuer, secret);
+    const updatedUser = await prisma.user.update({
+      where: { id: existingUser.id },
+      data: {
+        qrCodeSecret: secret,
+        qrCodeSecretExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      },
+    });
+
+    return res.status(201).json({
+      status: true,
+      message: "you should confirm wit QR code",
+      data: {
+        otpAuthUrl,
+        secret,
+      },
+    });
+  } catch (error) {
+    console.error("Failed to send qr code:", error);
+    return next(customError("Failed to send qr code:", 500));
   }
 };
 

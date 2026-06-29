@@ -38,6 +38,10 @@ model User {
   twoFactorSecret          String?
   twoFactorSecretExpiresAt DateTime?
 
+  qrCodeEnabled         Boolean   @default(false)
+  qrCodeSecret          String?
+  qrCodeSecretExpiresAt DateTime?  
+
   createdAt DateTime @default(now())
 
   profile        Profile?

@@ -4,7 +4,7 @@ import { prisma } from "../../utils/prisma";
 import { UpdateProfileData, UpdateUserData } from "./userTypes";
 import type { Request } from "express";
 
-export const findUser = async (condition: any , include : any) => {
+export const findUser = async (condition: any , include : any = {}) => {
   const user = await prisma.user.findFirst({
     where: {
       ...condition,

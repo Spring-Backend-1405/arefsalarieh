@@ -6,12 +6,15 @@ import { checkJwtToken, createJwtToken } from "../../utils/tokenHelper";
 import {
   generaterefreshTokenAndSetCookie,
   getGoogleClient,
+  sedLinkForQrCode,
   sendForgotPasswordEmail,
   sendVerificationEmail,
   sendVerificationEmailInLogin,
 } from "./auth.service";
 import crypto from "crypto";
 import { findUser } from "../user/user.servece";
+import { authenticator } from "otplib";
+import { env } from "../../config/env";
 
 export const handleRegister = async (
   req: Request,
@@ -231,20 +234,24 @@ export const handleLogin = async (
       return next(customError("User doesn't exist", 400));
     }
 
-    if (!existingUser.isEmailVerified) {
-      return next(customError("you havent verified your email", 400));
-    }
-
-    if (existingUser.twoFactorEnabled) {
-      sendVerificationEmailInLogin(normalizedEmail, res, next);
-    }
-
     const checkPassword = await comparePassword(
       password,
       existingUser.password,
     );
     if (!checkPassword) {
       return next(customError("Password is wrong", 404));
+    }
+
+    if (!existingUser.isEmailVerified) {
+      return next(customError("you havent verified your email", 400));
+    }
+
+    if (existingUser.twoFactorEnabled) {
+     return sendVerificationEmailInLogin(normalizedEmail, res, next);
+    }
+
+    if (existingUser.qrCodeEnabled) {
+     return sedLinkForQrCode(existingUser , res , next)
     }
 
     const accessToken = createJwtToken(
@@ -568,6 +575,7 @@ export async function activeTwoStepVerification(
       },
       data: {
         twoFactorEnabled: true,
+        qrCodeEnabled: false,
       },
     });
 
@@ -578,6 +586,7 @@ export async function activeTwoStepVerification(
       gender: updatedUser.gender,
       isEmailVerified: updatedUser.isEmailVerified,
       twoFactorEnabled: updatedUser.twoFactorEnabled,
+      qrCodeEnabled: updatedUser.qrCodeEnabled,
       createdAt: updatedUser.createdAt,
     };
 
@@ -771,5 +780,125 @@ export async function googleAuthCallbackHandler(
   } catch (error) {
     console.log("error in googleAuthCallbackHandler = ", error);
     next(error);
+  }
+}
+
+export async function activeQRcode(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const authReq = req as any;
+  const authUser = authReq.user;
+
+  const { password } = authReq.body;
+
+  if (!authUser) {
+    return next(customError("Not authenticated", 400));
+  }
+
+  try {
+    const user = await findUser({ id: authUser.id });
+
+    if (!user) {
+      return next(customError("User not found", 400));
+    }
+
+    const checkPassword = await comparePassword(password, user.password);
+    if (!checkPassword) {
+      return next(customError("Password is wrong", 404));
+    }
+
+    if (user?.qrCodeEnabled) {
+      return next(customError("you already active qr code", 404));
+    }
+
+    // const secret = authenticator.generateSecret();
+
+    // const issuer = env.appName;
+
+    // const otpAuthUrl = authenticator.keyuri(user.email, issuer, secret);
+
+    // const updatedUser = await prisma.user.update({
+    //   where: { id: authUser.id },
+    //   data: {
+    //     qrCodeSecret: secret,
+    //     qrCodeSecretExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    //   },
+    // });
+
+    const updatedUser = await prisma.user.update({
+      where: { id: authUser.id },
+      data: {
+        qrCodeEnabled: true,
+        twoFactorEnabled: false,
+      },
+    });
+
+    return res.status(201).json({
+      message: "qr code setup is done",
+      data: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        qrCodeEnabled: updatedUser.qrCodeEnabled,
+        twoFactorEnabled: updatedUser.twoFactorEnabled,
+      },
+    });
+  } catch (error) {
+    console.log("error in activeQRcode = ", error);
+    next(error);
+  }
+}
+
+export async function qrCodeHandler(req: Request, res: Response) {
+  const authReq = req as any;
+  const authUser = authReq.user;
+
+  if (!authUser) {
+    return res.status(401).json({
+      message: "Not authenticated",
+    });
+  }
+
+  const { code } = req.body as { code?: string };
+
+  if (!code) {
+    return res.status(400).json({
+      message: "Two factor code is required",
+    });
+  }
+
+  try {
+    const user = await findUser({ id: authUser.id });
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    if (!user.qrCodeSecret) {
+      return res.status(400).json({
+        message: "You dont have 2fa setup yet.",
+      });
+    }
+
+    const isValid = authenticator.check(code, user.qrCodeSecret);
+
+    if (!isValid) {
+      return res.status(400).json({
+        message: "Invalid two factor code",
+      });
+    }
+
+    return res.json({
+      message: "2FA enabled successfully",
+      twoFactorEnabled: true,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      message: "Internal server error",
+    });
   }
 }

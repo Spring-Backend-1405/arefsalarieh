@@ -10,6 +10,7 @@ for(let key of requiredEnv){
 
 
 export const env = {
+    appName:process.env.APP_NAME || '',
     databaseUrl : process.env.DATABASE_URL,
     port : process.env.PORT,
     jwtSecret : process.env.JWT_SECRET,
