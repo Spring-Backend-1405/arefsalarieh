@@ -220,3 +220,45 @@ export const getUserImages = async (
     next(error);
   }
 };
+
+
+export const deleteUserImage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const authReq = req as any;
+    const { id } = authReq.user;
+    const { imageId } = req.params;
+
+    const existingUser = await findUser({ id });
+
+    if (!existingUser) {
+      return next(customError("User not found", 404));
+    }
+
+    const image = await prisma.userPictures.findFirst({
+      where: {
+        id: String(imageId),
+        userId: id,
+      },
+    });
+
+    if (!image) {
+      return next(customError("Image not found or you don't have permission", 404));
+    }
+
+    const deletedImage = await prisma.userPictures.delete({
+      where: { id: String(imageId) },
+    });
+
+    res.status(200).json({
+      status: true,
+      data: deletedImage,
+    });
+  } catch (error) {
+    console.log("error in deleteUserImage = ", error);
+    next(error);
+  }
+};

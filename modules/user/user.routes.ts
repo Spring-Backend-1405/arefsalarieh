@@ -1,6 +1,6 @@
 import express from "express";
 import { validateMiddleware } from "../../middlewares/validateMiddleware";
-import { getAllUsers, getUserImages, getUserProfile, updateProfile, uploadProfileImages } from "./user.controller";
+import { deleteUserImage, getAllUsers, getUserImages, getUserProfile, updateProfile, uploadProfileImages } from "./user.controller";
 import {
   checkAuthentication,
   requirePermission,
@@ -34,6 +34,12 @@ userRouter.post(
   checkAuthentication,
   upload.array("files", 5),
   uploadProfileImages,
+);
+
+userRouter.delete(
+  "/delete-user-image/:imageId",
+  checkAuthentication,
+  deleteUserImage,
 );
 
 export default userRouter;
