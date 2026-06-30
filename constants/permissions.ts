@@ -8,6 +8,7 @@ export const Resources = {
   PERMISSION : 'permission',
   ROLEPERMISSION : 'role-permission',
   USERPERMISSION : 'user-permission',
+  WALLET : 'wallet'
 } as const;
 
 export const Actions = {
@@ -18,6 +19,7 @@ export const Actions = {
   LIKE: 'like',
   ENROLL: 'enroll',
   FAVORITE: 'favorite',
+  CONFIRMWITHDRAW : 'confirm-withdraw'
 } as const;
 
 export const Roles = {
