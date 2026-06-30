@@ -285,7 +285,6 @@ export const deleteUserImage = async (
     const { imageId } = req.params;
 
     const existingUser = await findUser({ id });
-
     if (!existingUser) {
       return next(customError("User not found", 404));
     }
@@ -301,13 +300,35 @@ export const deleteUserImage = async (
       return next(customError("Image not found or you don't have permission", 404));
     }
 
-    const deletedImage = await prisma.userPictures.delete({
-      where: { id: String(imageId) },
+    await prisma.$transaction(async (tx) => {
+      await tx.userPictures.delete({
+        where: { id: String(imageId) },
+      });
+
+      if (image.isMain) {
+        const remainingImages = await tx.userPictures.findMany({
+          where: { userId: id },
+          orderBy: { createdAt: 'asc' }, 
+          take: 1,
+        });
+
+        if (remainingImages.length > 0) {
+          await tx.userPictures.update({
+            where: { id: remainingImages[0].id },
+            data: { isMain: true },
+          });
+        }
+      }
+    });
+
+    const updatedImages = await prisma.userPictures.findMany({
+      where: { userId: id },
     });
 
     res.status(200).json({
       status: true,
-      data: deletedImage,
+      message: "Image deleted successfully",
+      data: updatedImages,
     });
   } catch (error) {
     console.log("error in deleteUserImage = ", error);
