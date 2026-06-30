@@ -1,4 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
+import path from "path";
+import fs from "fs";
 import { prisma } from "../../utils/prisma";
 import { customError } from "../../utils/customError";
 import {
@@ -10,7 +12,6 @@ import {
   handleQuery,
   handleUpdateUser,
 } from "./user.servece";
-import { FilesUploaded } from "./userTypes";
 
 export const getUserProfile = async (
   req: Request,
@@ -34,13 +35,10 @@ export const getUserProfile = async (
 
     const userWithImageUrls = {
       ...existingUser,
-      userPictures: existingUser.userPictures.map((pic: any) => {
-        const filename = pic.path.split(/[\\/]/).pop();
-        return {
-          ...pic,
-          url: `${baseUrl}/uploads/${filename}`,
-        };
-      }),
+      userPictures: existingUser.userPictures.map((pic: any) => ({
+        ...pic,
+        url: `${baseUrl}/api/user/image/${pic.id}`,
+      })),
     };
 
     const { password: _, ...userWithoutPassword } = userWithImageUrls;
@@ -184,39 +182,42 @@ export const uploadProfileImages = async (
   }
 };
 
-export const getUserImages = async (
+export const getUserImageById = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
     const authReq = req as any;
-    const { id } = authReq.user;
+    const userId = authReq.user.id;
+    const { imageId } = req.params;
 
-    const existingUser = await findUser({ id }, { userPictures: true });
+    const image = await prisma.userPictures.findFirst({
+      where: {
+        id: String(imageId),
+        userId: userId,
+      },
+    });
 
-    if (!existingUser) {
-      return next(customError("User not found", 404));
+    if (!image) {
+      return next(customError("Image not found", 404));
     }
 
-    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    const filename = image.path.split(/[\\/]/).pop();
+    const uploadsPath = path.join(process.cwd(), "uploads", filename!);
 
-    const imageUrls = {
-      userPictures: existingUser.userPictures.map((pic: any) => {
-        const filename = pic.path.split(/[\\/]/).pop();
-        return {
-          ...pic,
-          url: `${baseUrl}/uploads/${filename}`,
-        };
-      }),
-    };
+    if (!fs.existsSync(uploadsPath)) {
+      return next(customError("File not found on server", 404));
+    }
 
-    res.status(200).json({
-      status: true,
-      data: imageUrls,
+    res.sendFile(uploadsPath, (err) => {
+      if (err) {
+        console.error("Error sending file:", err);
+        next(customError("File not found", 404));
+      }
     });
   } catch (error) {
-    console.log("error in getUserImages = ", error);
+    console.log("error in getUserImageById = ", error);
     next(error);
   }
 };
@@ -244,7 +245,9 @@ export const changeMainImage = async (
     });
 
     if (!image) {
-      return next(customError("Image not found or does not belong to user", 404));
+      return next(
+        customError("Image not found or does not belong to user", 404),
+      );
     }
 
     await prisma.$transaction(async (tx) => {
@@ -297,7 +300,9 @@ export const deleteUserImage = async (
     });
 
     if (!image) {
-      return next(customError("Image not found or you don't have permission", 404));
+      return next(
+        customError("Image not found or you don't have permission", 404),
+      );
     }
 
     await prisma.$transaction(async (tx) => {
@@ -308,7 +313,7 @@ export const deleteUserImage = async (
       if (image.isMain) {
         const remainingImages = await tx.userPictures.findMany({
           where: { userId: id },
-          orderBy: { createdAt: 'asc' }, 
+          orderBy: { createdAt: "asc" },
           take: 1,
         });
 
@@ -335,4 +340,6 @@ export const deleteUserImage = async (
     next(error);
   }
 };
+
+
 

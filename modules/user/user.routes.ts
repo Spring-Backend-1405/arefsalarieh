@@ -1,6 +1,6 @@
 import express from "express";
 import { validateMiddleware } from "../../middlewares/validateMiddleware";
-import { changeMainImage, deleteUserImage, getAllUsers, getUserImages, getUserProfile, updateProfile, uploadProfileImages } from "./user.controller";
+import { changeMainImage, deleteUserImage, getAllUsers, getUserImageById, getUserImages, getUserProfile, updateProfile, uploadProfileImages } from "./user.controller";
 import {
   checkAuthentication,
   requirePermission,
@@ -12,7 +12,6 @@ import upload from "../../middlewares/upload";
 const userRouter = express.Router();
 
 userRouter.get("/profile", checkAuthentication, getUserProfile);
-userRouter.get("/user-images", checkAuthentication, getUserImages);
 
 userRouter.put(
   "/update-profile",
@@ -36,6 +35,12 @@ userRouter.post(
   uploadProfileImages,
 );
 
+userRouter.get(
+  "/image/:imageId",
+  checkAuthentication,
+  getUserImageById
+);
+
 userRouter.put(
   "/change-main-image/:imageId",
   checkAuthentication,
@@ -47,5 +52,7 @@ userRouter.delete(
   checkAuthentication,
   deleteUserImage,
 );
+
+
 
 export default userRouter;
