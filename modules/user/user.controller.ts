@@ -221,6 +221,58 @@ export const getUserImages = async (
   }
 };
 
+export const changeMainImage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const authReq = req as any;
+    const { id } = authReq.user;
+    const { imageId } = req.params;
+
+    const existingUser = await findUser({ id });
+    if (!existingUser) {
+      return next(customError("User not found", 404));
+    }
+
+    const image = await prisma.userPictures.findFirst({
+      where: {
+        id: String(imageId),
+        userId: id,
+      },
+    });
+
+    if (!image) {
+      return next(customError("Image not found or does not belong to user", 404));
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.userPictures.updateMany({
+        where: { userId: id },
+        data: { isMain: false },
+      });
+
+      await tx.userPictures.update({
+        where: { id: String(imageId) },
+        data: { isMain: true },
+      });
+    });
+
+    const updatedImages = await prisma.userPictures.findMany({
+      where: { userId: id },
+    });
+
+    res.status(200).json({
+      status: true,
+      message: "Main image updated successfully",
+      data: updatedImages,
+    });
+  } catch (error) {
+    console.log("error in changeMainImage = ", error);
+    next(error);
+  }
+};
 
 export const deleteUserImage = async (
   req: Request,
@@ -262,3 +314,4 @@ export const deleteUserImage = async (
     next(error);
   }
 };
+
