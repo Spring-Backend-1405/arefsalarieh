@@ -175,12 +175,16 @@ export const withdrawRequest = async (
         return next(customError("Wallet not found", 404));
       }
 
+      if (amount > wallet.balance) {
+        return next(customError("your balance is not enough", 400));
+      }
+
       newTransaction = await tx.transactionList.create({
         data: {
           amount: Number(amount),
           type: "WITHDRAWAL",
           status: "PENDING",
-          sheba : Number(sheba),
+          sheba: Number(sheba),
           description:
             description || `user ${id} request to withdraw ${amount}`,
           authority: authority,
@@ -190,11 +194,65 @@ export const withdrawRequest = async (
     });
 
     res.status(200).json({
-      message:"Withdrawal request successfully submitted",
-      data: newTransaction
+      message: "Withdrawal request successfully submitted",
+      data: newTransaction,
     });
   } catch (error) {
     console.log("error in withdrawRequest = ", error);
+    next(error);
+  }
+};
+
+export const confirmWithdraw = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { transActionId } = req.body;
+
+    const transaction = await prisma.transactionList.findFirst({
+      where: { id: String(transActionId) },
+    });
+
+    if (!transaction) {
+      return next(customError("dont find any transaction", 404));
+    }
+
+    if (transaction.status === "SUCCESS") {
+      return next(customError("its a repititive transaction", 400));
+    }
+    if (transaction.status === "FAILED") {
+      return next(customError("this transaction already sign as faild ", 400));
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.transactionList.update({
+        where: { id: transaction.id },
+        data: {
+          status: "SUCCESS",
+        },
+      });
+
+      const wallet = await tx.wallet.findUnique({
+        where: { id: transaction.walletId },
+      });
+      if (!wallet) {
+        return next(customError("wallet dosnt find", 400));
+      }
+      await tx.wallet.update({
+        where: { id: wallet.id },
+        data: {
+          balance: wallet.balance - transaction.amount,
+        },
+      });
+    });
+
+    return res.status(200).json({
+      message: "withdraw was successfull",
+    });
+  } catch (error) {
+    console.log("error in confirmWithdraw = ", error);
     next(error);
   }
 };

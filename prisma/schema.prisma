@@ -165,6 +165,7 @@ model TransactionList {
   type        TransactionType
   status      TransactionStatus @default(PENDING)
   description String?
+  refId       Int? 
   sheba       Int? 
   authority   String @unique 
   walletId    String
