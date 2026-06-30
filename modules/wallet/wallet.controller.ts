@@ -152,3 +152,49 @@ export const paymentResult = async (
     next(error);
   }
 };
+
+export const withdrawRequest = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const authReq = req as any;
+    const { id } = authReq.user;
+    const { amount, description, sheba } = req.body;
+
+    const authority = uuidv4();
+
+    let newTransaction: any;
+
+    await prisma.$transaction(async (tx) => {
+      const wallet = await tx.wallet.findUnique({
+        where: { userId: id },
+      });
+      if (!wallet) {
+        return next(customError("Wallet not found", 404));
+      }
+
+      newTransaction = await tx.transactionList.create({
+        data: {
+          amount: Number(amount),
+          type: "WITHDRAWAL",
+          status: "PENDING",
+          sheba : Number(sheba),
+          description:
+            description || `user ${id} request to withdraw ${amount}`,
+          authority: authority,
+          walletId: wallet.id,
+        },
+      });
+    });
+
+    res.status(200).json({
+      message:"Withdrawal request successfully submitted",
+      data: newTransaction
+    });
+  } catch (error) {
+    console.log("error in withdrawRequest = ", error);
+    next(error);
+  }
+};
