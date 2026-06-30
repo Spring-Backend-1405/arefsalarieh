@@ -24,7 +24,7 @@ export const getUserProfile = async (
 
     const existingUser = await findUser(
       { id },
-      { profile: true, userPictures: true },
+      { profile: true, userPictures: true , wallet : true },
     );
 
     if (!existingUser) {
