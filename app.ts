@@ -10,6 +10,7 @@ import permissionRouter from "./modules/permission/permission.routes";
 import rolePermissionRouter from "./modules/rolePermission/rolePermission.routes";
 import userPermissionException from "./modules/userPermissionException/userPermissionException.routes";
 import walletRouter from "./modules/wallet/wallet.routes";
+import categoryRouter from "./modules/course/routes/category.routes";
 
 export const createApp = () => {
   const app = express();
@@ -30,7 +31,7 @@ export const createApp = () => {
   app.use("/api/role-permission", rolePermissionRouter);
   app.use("/api/user-permission-exception", userPermissionException);
   app.use("/api/wallet", walletRouter);
-
+  app.use("/api/category", categoryRouter);
 
   app.use(errorMiddleware);
 

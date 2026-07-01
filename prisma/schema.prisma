@@ -44,11 +44,12 @@ model User {
 
   createdAt DateTime @default(now())
 
-  profile         Profile?
-  roles           UserRole[]
-  userPermission  UserPermission[]
-  userPictures    UserPictures[]
-  wallet          Wallet?
+  profile        Profile?
+  roles          UserRole[]
+  userPermission UserPermission[]
+  userPictures   UserPictures[]
+  wallet         Wallet?
+  courses        Course[]
 }
 
 model Profile {
@@ -139,7 +140,7 @@ model UserPermission {
 
 model Wallet {
   id        String   @id @default(uuid())
-  balance   Int      @default(0) 
+  balance   Int      @default(0)
   userId    String   @unique
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
@@ -161,17 +162,102 @@ enum TransactionStatus {
 
 model TransactionList {
   id          String            @id @default(uuid())
-  amount      Int 
+  amount      Int
   type        TransactionType
   status      TransactionStatus @default(PENDING)
   description String?
-  refId       Int? 
-  sheba       Int? 
-  authority   String @unique 
+  refId       Int?
+  sheba       Int?
+  authority   String            @unique
   walletId    String
   wallet      Wallet            @relation(fields: [walletId], references: [id], onDelete: Cascade)
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
 }
 
+enum CourseLevel {
+  beginner
+  intermediate
+  advanced
+}
 
+enum CourseStatus {
+  draft
+  published
+  archived
+}
+
+model CourseCategory {
+  id           Int              @id @default(autoincrement())
+  categoryName String
+  parentId     Int?
+  parent       CourseCategory?  @relation("CategoryRelations", fields: [parentId], references: [id])
+  children     CourseCategory[] @relation("CategoryRelations")
+
+  courseCategoryLists CourseCategoryList[]
+}
+
+model CourseType {
+  id       Int      @id @default(autoincrement())
+  typeName String
+  courses  Course[]
+}
+
+model Course {
+  id               String       @id @default(uuid())
+  title            String
+  shortDescription String
+  isFree           Boolean      @default(false)
+  level            CourseLevel
+  status           CourseStatus @default(draft)
+  slug             String?      @unique
+  duration         String?
+  teacherId        String
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  typeId           Int
+
+  teacher             User                 @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  courseType          CourseType           @relation(fields: [typeId], references: [id], onDelete: Cascade)
+  detail              CourseDetail?
+  courseCategoryLists CourseCategoryList[]
+  coursePrices        CoursePrice[]
+}
+
+model CourseCategoryList {
+  courseId   String
+  categoryId Int
+
+  assignedAt DateTime @default(now())
+
+  course   Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  category CourseCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([courseId, categoryId])
+}
+
+model CourseDetail {
+  id                   String   @id @default(uuid())
+  courseId             String   @unique
+  fullDescription      String
+  language             String   @default("fa")
+  certificateAvailable Boolean  @default(false)
+  demoVideoUrl         String?
+  totalStudent         Int      @default(0)
+  capacity             Int
+  lastUpdated          DateTime @updatedAt
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+model CoursePrice {
+  id            String    @id @default(uuid())
+  price         Int
+  discountPrice Int?
+  startAt       DateTime?
+  endAt         DateTime?
+  isActive      Boolean   @default(false)
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
