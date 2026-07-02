@@ -28,7 +28,7 @@ export const addNewCategory = async (
   }
 };
 
-export const getAllcategories = async (
+export const getAllCategories = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -53,6 +53,9 @@ export const getAllcategories = async (
       orderBy,
       skip,
       take: limit,
+      include :{
+        children : true
+      }
     });
 
     const totalPages = Math.ceil(totalCount / limit);
@@ -71,6 +74,36 @@ export const getAllcategories = async (
         },
       },
     });
+  } catch (error) {
+    console.log("error in getAllUsers = ", error);
+    next(error);
+  }
+};
+
+
+export const deleteCategory = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const {id} = req.params
+
+    const deletedCategory = await prisma.courseCategory.delete({
+      where :{
+        id : Number(id)
+      }
+    })
+
+    if(!deletedCategory){
+        throw customError("this category doesnt exist", 404);
+
+    }
+
+    res.json({
+      message : 'category deleted successfulle',
+      deleteCategory
+    })
   } catch (error) {
     console.log("error in getAllUsers = ", error);
     next(error);
