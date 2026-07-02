@@ -1,5 +1,5 @@
 import express from "express";
-import { addNewCategory } from "../controllers/category.controller";
+import { addNewCategory, getAllcategories } from "../controllers/category.controller";
 import { checkAuthentication } from "../../../middlewares/authMiddleware";
 
 
@@ -9,6 +9,12 @@ categoryRouter.post(
   "/add-new-category",
   checkAuthentication,
   addNewCategory,
+);
+
+categoryRouter.get(
+  "/get-all-categories",
+  checkAuthentication,
+  getAllcategories,
 );
 
 export default categoryRouter;

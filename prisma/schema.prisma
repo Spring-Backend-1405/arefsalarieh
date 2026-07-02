@@ -192,6 +192,7 @@ model CourseCategory {
   categoryName String
   parentId     Int?
   parent       CourseCategory?  @relation("CategoryRelations", fields: [parentId], references: [id])
+  
   children     CourseCategory[] @relation("CategoryRelations")
 
   courseCategoryLists CourseCategoryList[]
