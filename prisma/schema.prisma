@@ -220,8 +220,8 @@ model Course {
 
   teacher             User                 @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   courseType          CourseType           @relation(fields: [typeId], references: [id], onDelete: Cascade)
-  detail              CourseDetail?
   courseCategoryLists CourseCategoryList[]
+  detail              CourseDetail?
   coursePrices        CoursePrice[]
 }
 
