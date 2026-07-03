@@ -12,6 +12,7 @@ import userPermissionException from "./modules/userPermissionException/userPermi
 import walletRouter from "./modules/wallet/wallet.routes";
 import categoryRouter from "./modules/course/routes/category.routes";
 import courseTypeRouter from "./modules/course/routes/courseType.routes";
+import courseRouter from "./modules/course/routes/course.routes";
 
 export const createApp = () => {
   const app = express();
@@ -34,7 +35,7 @@ export const createApp = () => {
   app.use("/api/wallet", walletRouter);
   app.use("/api/category", categoryRouter);
   app.use("/api/courseType", courseTypeRouter);
-
+  app.use("/api/course", courseRouter);
   
 
   app.use(errorMiddleware);
