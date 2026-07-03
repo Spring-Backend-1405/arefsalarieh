@@ -80,6 +80,32 @@ export const getAllCategories = async (
   }
 };
 
+export const getcategoryDetail = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const {id } = req.query as any;
+
+
+    const detail = await prisma.courseCategory.findFirst({
+      where:{id},
+      include :{
+        children : true
+      }
+    });
+
+
+    res.status(200).json({
+      status: true,
+      data: detail
+    });
+  } catch (error) {
+    console.log("error in getAllUsers = ", error);
+    next(error);
+  }
+};
 
 export const deleteCategory = async (
   req: Request,

@@ -1,18 +1,18 @@
 import type { Request } from "express";
 
 export const handleOrder = (
-  sortBy: string = "createdAt",
-  order: string = "asc",
+  sortByQuery: string = "createdAt",
+  orderQuery: string = "asc",
   allowedFields: string[],
 ) => {
   let orderBy: any = {};
 
-  if (typeof sortBy === "string" && typeof order === "string") {
-    const validOrder = order.toLowerCase() === "desc" ? "desc" : "asc";
+  if (typeof sortByQuery === "string" && typeof orderQuery === "string") {
+    const validOrder = orderQuery.toLowerCase() === "desc" ? "desc" : "asc";
 
-    if (allowedFields.includes(sortBy)) {
+    if (allowedFields.includes(sortByQuery)) {
       orderBy = {
-        [sortBy]: validOrder,
+        [sortByQuery]: validOrder,
       } as typeof orderBy;
     }
   }
