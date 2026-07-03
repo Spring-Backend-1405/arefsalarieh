@@ -35,3 +35,43 @@ export const addNewCourseType = async (
     next(error);
   }
 };
+
+export const getAllCourseTypes = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const courseTypesList = await prisma.courseType.findMany()
+
+    res.json({
+        message : true,
+        data : courseTypesList
+    })
+  } catch (error) {
+    console.log("error in getAllUsers = ", error);
+    next(error);
+  }
+};
+
+export const deleteCourseType = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const {id} = req.params
+
+    const deletedCourseType = await prisma.courseType.delete({
+        where :{id : Number(id)}
+    })
+
+    res.json({
+        message : true,
+        data : deletedCourseType
+    })
+  } catch (error) {
+    console.log("error in getAllUsers = ", error);
+    next(error);
+  }
+};
