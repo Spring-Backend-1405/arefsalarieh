@@ -18,6 +18,7 @@ export const createCourseHelper = async (
         "use /category/get-all-categories to get all CourseCategory to use",
       courseType: "use /courseType/get-all-types to get all courseType to use",
       CourseStatus: 'one of "draft" , "published" , "archived" ',
+      CourseLevel: 'one of "beginner" , "intermediate" , "advanced" ',
     };
     res.status(200).json({
       message: true,
@@ -40,7 +41,6 @@ export const createCourseStepOne = async (
       shortDescription,
       isFree,
       level,
-    //   status,
       teacherId,
       typeId,
     } = req.body;
@@ -55,17 +55,6 @@ export const createCourseStepOne = async (
         ),
       );
     }
-
-    // const statusList = ["draft", "published", "archived"];
-
-    // if (status && !statusList.includes(status)) {
-    //   return next(
-    //     customError(
-    //       'status shoul be in ["draft", "published", "archived"]',
-    //       400,
-    //     ),
-    //   );
-    // }
 
     const existingType = await prisma.courseType.findFirst({
       where: {
@@ -108,7 +97,6 @@ export const createCourseStepOne = async (
         shortDescription,
         isFree: Boolean(isFree),
         level,
-        // status,
         teacherId,
         typeId: Number(typeId),
       },
@@ -140,87 +128,115 @@ export const createCourseStepTwo = async (
       capacity,
       slug,
       duration,
-      status
+      status,
     } = req.body;
 
+    if (!courseId) {
+      return next(customError("courseId is required", 400));
+    }
+    if (!price || typeof price !== "number" || price <= 0) {
+      return next(customError("price must be a positive number", 400));
+    }
+    if (!capacity || typeof capacity !== "number" || capacity <= 0) {
+      return next(customError("capacity must be a positive number", 400));
+    }
+    if (!fullDescription) {
+      return next(customError("fullDescription is required", 400));
+    }
+
     const existingCourse = await prisma.course.findFirst({
-      where: {
-        id: String(courseId),
-      },
-      include: {
-        detail: true,
-      },
+      where: { id: String(courseId) },
+      include: { detail: true },
     });
 
     if (!existingCourse) {
-      return next(customError("cant find this course", 404));
+      return next(customError("Course not found", 404));
     }
-
     if (existingCourse.detail) {
-      return next(customError("this course has already paased step two", 404));
+      return next(customError("This course has already passed step two", 400));
     }
 
-    const addPrice = await prisma.coursePrice.create({
-        data : {
-            courseId,
-            price
-        }
-    })
-
-    if (!addPrice) {
-      return next(customError("error in adding course price", 400));
+    let categoryIds: number[] = [];
+    if (Array.isArray(courseCategoryIdsArray)) {
+      categoryIds = courseCategoryIdsArray;
+    } else if (typeof courseCategoryIdsArray === "string") {
+      try {
+        categoryIds = JSON.parse(courseCategoryIdsArray);
+      } catch {
+        return next(customError("Invalid category IDs format", 400));
+      }
     }
 
-    const categoryArr =courseCategoryIdsArray ? JSON.parse(courseCategoryIdsArray) : [];
+    if (categoryIds.length > 0) {
+      const validCategories = await prisma.courseCategory.findMany({
+        where: { id: { in: categoryIds } },
+        select: { id: true },
+      });
+      const validIds = validCategories.map((c) => c.id);
+      const invalidIds = categoryIds.filter((id) => !validIds.includes(id));
+      if (invalidIds.length > 0) {
+        return next(
+          customError(`Invalid category IDs: ${invalidIds.join(", ")}`, 400)
+        );
+      }
+    }
 
-    const categoryArrForResponse: any[] = [];
-
-    for (let i = 0; i < categoryArr.length; i++) {
-      const item = categoryArr[i];
-
-      const thisCourseCategory = await prisma.courseCategoryList.create({
+    const result = await prisma.$transaction(async (tx) => {
+      const newPrice = await tx.coursePrice.create({
         data: {
           courseId,
-          categoryId: item,
+          price,
+          isActive: true,
         },
       });
-      categoryArrForResponse.push(thisCourseCategory);
-    }
 
-    if (categoryArrForResponse.length < 1) {
-      return next(customError("error in adding course category", 400));
-    }
+      const categoryConnections = [];
+      for (const catId of categoryIds) {
+        const connection = await tx.courseCategoryList.create({
+          data: {
+            courseId,
+            categoryId: catId,
+          },
+        });
+        categoryConnections.push(connection);
+      }
 
-    const addCourseDetail = await prisma.courseDetail.create({
-      data: {
-        courseId,
-        fullDescription,
-        language,
-        certificateAvailable : Boolean(certificateAvailable),
-        capacity,
-        slug,
-        duration,
-      },
+      const newDetail = await tx.courseDetail.create({
+        data: {
+          courseId,
+          fullDescription,
+          language: language || "fa",
+          certificateAvailable: Boolean(certificateAvailable),
+          capacity,
+          slug,
+          duration,
+        },
+      });
+
+      const updatedCourse = await tx.course.update({
+        where: { id: courseId },
+        data: {
+          status: status || "published",
+        },
+      });
+
+      return {
+        updatedCourse,
+        newDetail,
+        newPrice,
+        categoryConnections,
+      };
     });
 
-    if (!addCourseDetail) {
-      return next(customError("error in create course", 400));
-    }
-
-    const changeCourseStatus = await prisma.course.update({
-        where : {
-            id : courseId
-        },
-        data : {
-            status : status || 'published'
-        }
-    })
-
-    const courseForRes = {...changeCourseStatus , ...addCourseDetail}
-
     res.status(201).json({
-      message: "create Course Step two done",
-      data: courseForRes,
+      status: true,
+      message: "Course step two completed successfully",
+      data: {
+        course: result.updatedCourse,
+        detail: result.newDetail,
+        price: result.newPrice,
+        categories: result.categoryConnections,
+      },
     });
   } catch (error) {
     console.log("error in createCourseStepTwo = ", error);
