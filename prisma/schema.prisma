@@ -253,12 +253,12 @@ model CourseDetail {
 
 model CoursePrice {
   id            String    @id @default(uuid())
+  courseId String
   price         Int
   discountPrice Int?
   startAt       DateTime?
   endAt         DateTime?
   isActive      Boolean   @default(false)
 
-  courseId String
   course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 }

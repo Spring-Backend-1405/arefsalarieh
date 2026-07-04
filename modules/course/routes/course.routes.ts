@@ -1,6 +1,6 @@
 import express from "express";
 import { checkAuthentication } from "../../../middlewares/authMiddleware";
-import { createCourseHelper, createCourseStepOne } from "../controllers/course.controller";
+import { createCourseHelper, createCourseStepOne, createCourseStepTwo } from "../controllers/course.controller";
 
 
 const courseRouter = express.Router();
@@ -19,7 +19,11 @@ courseRouter.post(
   createCourseStepOne,
 );
 
-
+courseRouter.post(
+  "/create-course-step-two",
+  checkAuthentication,
+  createCourseStepTwo,
+);
 
 
 
