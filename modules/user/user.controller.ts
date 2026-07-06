@@ -105,6 +105,11 @@ export const getAllUsers = async (
     const users = await prisma.user.findMany({
       include: {
         profile: true,
+        roles : {
+          include : {
+            role : true
+          }
+        }
       },
       where: searchWhere,
       orderBy,

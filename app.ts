@@ -13,6 +13,7 @@ import walletRouter from "./modules/wallet/wallet.routes";
 import categoryRouter from "./modules/course/routes/category.routes";
 import courseTypeRouter from "./modules/course/routes/courseType.routes";
 import courseRouter from "./modules/course/routes/course.routes";
+import userRoleRouter from "./modules/userRole/userRole.routes";
 
 export const createApp = () => {
   const app = express();
@@ -29,6 +30,7 @@ export const createApp = () => {
   app.use("/api/auth", authRouter);
   app.use("/api/user", userRouter);
   app.use("/api/role", roleRouter);
+  app.use("/api/user-role", userRoleRouter); 
   app.use("/api/permission", permissionRouter);
   app.use("/api/role-permission", rolePermissionRouter);
   app.use("/api/user-permission-exception", userPermissionException);
