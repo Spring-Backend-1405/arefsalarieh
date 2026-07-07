@@ -12,6 +12,7 @@ import {
   priceFilter,
   whereFilter,
 } from "../services/course.service";
+import { findCourses, selectedFields } from "../services/courseType.service";
 
 export const createCourseHelper = async (
   req: Request,
@@ -251,7 +252,6 @@ export const getAllCourses = async (
 ) => {
   try {
     const { sortBy, order } = req.query as any;
-
     const where: any = {
       status: "published",
     };
@@ -270,74 +270,23 @@ export const getAllCourses = async (
       createdAt: "createdAt",
       totalStudent: "detail.totalStudent",
       duration: "detail.duration",
-      price: "IN_MEMORY", 
+      price: "IN_MEMORY",
       discountPrice: "IN_MEMORY",
     };
 
-    const { orderBy, sortKey, order: validOrder } = handleOrder(
-      sortBy,
-      order,
-      sortFieldMap,
-    );
+    const {
+      orderBy,
+      sortKey,
+      order: validOrder,
+    } = handleOrder(sortBy, order, sortFieldMap);
 
-    const courses = await prisma.course.findMany({
-      where,
-      orderBy: Object.keys(orderBy).length > 0 ? orderBy : undefined,
-      select: {
-        id: true,
-        title: true,
-        shortDescription: true,
-        level: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
-        isFree: true,
-        teacher: {
-          select: { id: true, name: true, email: true },
-        },
-        courseType: {
-          select: { id: true, typeName: true },
-        },
-        coursePrices: {
-          where: { isActive: true },
-          take: 1,
-          select: { price: true, discountPrice: true },
-        },
-        courseCategoryLists: {
-          select: {
-            category: {
-              select: { id: true, categoryName: true, parentId: true },
-            },
-          },
-        },
-        detail: {
-          select: { totalStudent: true, duration: true },
-        },
-      },
-    });
+    const { skip, limit } = handlePagination(req);
 
-    let formattedCourses = courses.map((course: any) => ({
-      id: course.id,
-      title: course.title,
-      shortDescription: course.shortDescription,
-      level: course.level,
-      status: course.status,
-      createdAt: course.createdAt,
-      isFree: course.isFree,
-      teacher: course.teacher
-        ? {
-            id: course.teacher.id,
-            name: course.teacher.name,
-            avatar: course.teacher.profile?.avatar || null,
-          }
-        : null,
-      type: course.courseType?.typeName || null,
-      price: course.coursePrices[0]?.price || 0,
-      discountPrice: course.coursePrices[0]?.discountPrice || null,
-      categories: course.courseCategoryLists.map((item: any) => item.category),
-      totalStudent: course.detail?.totalStudent || 0,
-      duration: course.detail?.duration || null,
-    }));
+    const totalCount = await prisma.course.count({ where });
+
+    const courses = await findCourses(where , orderBy , skip , limit)
+
+    let formattedCourses = selectedFields(courses)
 
     if (sortKey) {
       formattedCourses = formattedCourses.sort((a: any, b: any) => {
@@ -349,9 +298,21 @@ export const getAllCourses = async (
       });
     }
 
+    const totalPages = Math.ceil(totalCount / limit);
+
     res.status(200).json({
       status: true,
-      data: formattedCourses,
+      data: {
+        list: formattedCourses,
+        pagination: {
+          totalCount,
+          totalPages,
+          currentPage: Math.floor(skip / limit) + 1,
+          limit,
+          hasNextPage: skip + limit < totalCount,
+          hasPreviousPage: skip > 0,
+        },
+      },
     });
   } catch (error) {
     console.log("error in getAllCourses = ", error);
