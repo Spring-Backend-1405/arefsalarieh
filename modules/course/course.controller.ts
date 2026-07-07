@@ -1,18 +1,19 @@
 import type { Request, Response, NextFunction } from "express";
-import { prisma } from "../../../utils/prisma";
-import { customError } from "../../../utils/customError";
+import { prisma } from "../../utils/prisma";
+import { customError } from "../../utils/customError";
 import {
   handleOrder,
   handlePagination,
   handleSearch,
   SortFieldMap,
-} from "../../../utils/searchHelper";
+} from "../../utils/searchHelper";
 import {
   categoryFilter,
+  findCourses,
   priceFilter,
+  selectedFields,
   whereFilter,
-} from "../services/course.service";
-import { findCourses, selectedFields } from "../services/courseType.service";
+} from "./course.service";
 
 export const getAllCourses = async (
   req: Request,

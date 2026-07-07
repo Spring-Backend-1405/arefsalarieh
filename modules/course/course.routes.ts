@@ -1,6 +1,6 @@
 import express from "express";
-import { checkAuthentication } from "../../../middlewares/authMiddleware";
-import { createCourseHelper, createCourseStepOne, createCourseStepTwo, getAllCourses, getCourseDetail, updateCourse } from "../controllers/course.controller";
+import { checkAuthentication } from "../../middlewares/authMiddleware";
+import { createCourseHelper, createCourseStepOne, createCourseStepTwo, getAllCourses, getCourseDetail, updateCourse } from "./course.controller";
 
 
 const courseRouter = express.Router();

@@ -10,9 +10,9 @@ import permissionRouter from "./modules/permission/permission.routes";
 import rolePermissionRouter from "./modules/rolePermission/rolePermission.routes";
 import userPermissionException from "./modules/userPermissionException/userPermissionException.routes";
 import walletRouter from "./modules/wallet/wallet.routes";
-import categoryRouter from "./modules/course/routes/category.routes";
-import courseTypeRouter from "./modules/course/routes/courseType.routes";
-import courseRouter from "./modules/course/routes/course.routes";
+import categoryRouter from "./modules/course/category/category.routes";
+import courseTypeRouter from "./modules/course/courseType/courseType.routes";
+import courseRouter from "./modules/course/course.routes";
 import userRoleRouter from "./modules/userRole/userRole.routes";
 
 export const createApp = () => {

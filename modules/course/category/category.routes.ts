@@ -1,5 +1,5 @@
 import express from "express";
-import { addNewCategory, deleteCategory, getAllCategories, getcategoryDetail } from "../controllers/category.controller";
+import { addNewCategory, deleteCategory, getAllCategories, getcategoryDetail } from "./category.controller";
 import { checkAuthentication } from "../../../middlewares/authMiddleware";
 
 
