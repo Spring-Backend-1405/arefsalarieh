@@ -9,8 +9,8 @@ import {
 import {
   checkAuthentication,
   requirePermission,
-} from "../../middlewares/authMiddleware";
-import { Actions, Resources } from "../../constants/permissions";
+} from "../../../middlewares/authMiddleware";
+import { Actions, Resources } from "../../../constants/permissions";
 
 const userPermissionException = express.Router();
 

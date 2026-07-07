@@ -2,7 +2,7 @@ import express from "express";
 import {
   checkAuthentication,
   requirePermission,
-} from "../../middlewares/authMiddleware";
+} from "../../../middlewares/authMiddleware";
 import { addRoleToUser } from "./userRole.controller";
 
 

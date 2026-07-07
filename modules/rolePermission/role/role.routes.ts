@@ -1,7 +1,7 @@
 import express from "express";
 import { getAllRoles } from "./role.controller";
-import { checkAuthentication, requirePermission } from "../../middlewares/authMiddleware";
-import { Actions, Resources } from "../../constants/permissions";
+import { checkAuthentication, requirePermission } from "../../../middlewares/authMiddleware";
+import { Actions, Resources } from "../../../constants/permissions";
 
 const roleRouter = express.Router();
 

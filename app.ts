@@ -5,15 +5,15 @@ import cookieParser from "cookie-parser";
 import errorMiddleware from "./middlewares/errorMiddleware";
 import authRouter from "./modules/auth/auth.routes";
 import userRouter from "./modules/user/user.routes";
-import roleRouter from "./modules/role/role.routes";
-import permissionRouter from "./modules/permission/permission.routes";
+import roleRouter from "./modules/rolePermission/role/role.routes";
+import permissionRouter from "./modules/rolePermission/permission/permission.routes";
 import rolePermissionRouter from "./modules/rolePermission/rolePermission.routes";
-import userPermissionException from "./modules/userPermissionException/userPermissionException.routes";
+import userPermissionException from "./modules/rolePermission/userPermissionException/userPermissionException.routes";
 import walletRouter from "./modules/wallet/wallet.routes";
 import categoryRouter from "./modules/course/category/category.routes";
 import courseTypeRouter from "./modules/course/courseType/courseType.routes";
 import courseRouter from "./modules/course/course.routes";
-import userRoleRouter from "./modules/userRole/userRole.routes";
+import userRoleRouter from "./modules/rolePermission/userRole/userRole.routes";
 
 export const createApp = () => {
   const app = express();
