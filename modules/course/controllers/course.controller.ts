@@ -14,6 +14,128 @@ import {
 } from "../services/course.service";
 import { findCourses, selectedFields } from "../services/courseType.service";
 
+export const getAllCourses = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { sortBy, order } = req.query as any;
+    const where: any = {
+      status: "published",
+    };
+    const andConditions: any[] = [];
+
+    whereFilter(req, andConditions);
+    priceFilter(req, andConditions);
+    await categoryFilter(req, res, next, andConditions);
+
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
+    }
+
+    const sortFieldMap: SortFieldMap = {
+      title: "title",
+      createdAt: "createdAt",
+      totalStudent: "detail.totalStudent",
+      duration: "detail.duration",
+      price: "IN_MEMORY",
+      discountPrice: "IN_MEMORY",
+    };
+
+    const {
+      orderBy,
+      sortKey,
+      order: validOrder,
+    } = handleOrder(sortBy, order, sortFieldMap);
+
+    const { skip, limit } = handlePagination(req);
+
+    const totalCount = await prisma.course.count({ where });
+
+    const courses = await findCourses(where, orderBy, skip, limit);
+
+    let formattedCourses = selectedFields(courses);
+
+    if (sortKey) {
+      formattedCourses = formattedCourses.sort((a: any, b: any) => {
+        const valA = a[sortKey] ?? 0;
+        const valB = b[sortKey] ?? 0;
+        if (valA < valB) return validOrder === "asc" ? -1 : 1;
+        if (valA > valB) return validOrder === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+
+    const totalPages = Math.ceil(totalCount / limit);
+
+    res.status(200).json({
+      status: true,
+      data: {
+        list: formattedCourses,
+        pagination: {
+          totalCount,
+          totalPages,
+          currentPage: Math.floor(skip / limit) + 1,
+          limit,
+          hasNextPage: skip + limit < totalCount,
+          hasPreviousPage: skip > 0,
+        },
+      },
+    });
+  } catch (error) {
+    console.log("error in getAllCourses = ", error);
+    next(error);
+  }
+};
+
+export const getCourseDetail = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { courseId } = req.params;
+
+    const existingCourse = await prisma.course.findFirst({
+      where: {
+        id: String(courseId),
+      },
+      include: {
+        coursePrices: {
+          where: { isActive: true },
+        },
+        detail: true,
+        teacher: {
+          select: {
+            id: true,
+            name: true,
+            userPictures: { where: { isMain: true } },
+          },
+        },
+        courseType: true,
+        courseCategoryLists: {
+          select: {
+            category: true,
+          },
+        },
+      },
+    });
+
+    if (!existingCourse) {
+      return next(customError("course not found", 404));
+    }
+
+    res.json({
+      message: true,
+      data: existingCourse,
+    });
+  } catch (error) {
+    console.log("error in getCourseDetail = ", error);
+    next(error);
+  }
+};
+
 export const createCourseHelper = async (
   req: Request,
   res: Response,
@@ -245,129 +367,214 @@ export const createCourseStepTwo = async (
   }
 };
 
-export const getAllCourses = async (
+export const updateCourse = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const { sortBy, order } = req.query as any;
-    const where: any = {
-      status: "published",
-    };
-    const andConditions: any[] = [];
-
-    whereFilter(req, andConditions);
-    priceFilter(req, andConditions);
-    await categoryFilter(req, res, next, andConditions);
-
-    if (andConditions.length > 0) {
-      where.AND = andConditions;
-    }
-
-    const sortFieldMap: SortFieldMap = {
-      title: "title",
-      createdAt: "createdAt",
-      totalStudent: "detail.totalStudent",
-      duration: "detail.duration",
-      price: "IN_MEMORY",
-      discountPrice: "IN_MEMORY",
-    };
-
     const {
-      orderBy,
-      sortKey,
-      order: validOrder,
-    } = handleOrder(sortBy, order, sortFieldMap);
+      courseId,
+      title,
+      shortDescription,
+      isFree,
+      level,
+      teacherId,
+      typeId,
+      courseCategoryIdsArray,
+      price,
+      fullDescription,
+      language,
+      certificateAvailable,
+      capacity,
+      slug,
+      duration,
+      status,
+    } = req.body;
 
-    const { skip, limit } = handlePagination(req);
-
-    const totalCount = await prisma.course.count({ where });
-
-    const courses = await findCourses(where, orderBy, skip, limit);
-
-    let formattedCourses = selectedFields(courses);
-
-    if (sortKey) {
-      formattedCourses = formattedCourses.sort((a: any, b: any) => {
-        const valA = a[sortKey] ?? 0;
-        const valB = b[sortKey] ?? 0;
-        if (valA < valB) return validOrder === "asc" ? -1 : 1;
-        if (valA > valB) return validOrder === "asc" ? 1 : -1;
-        return 0;
-      });
+    if (!courseId) {
+      return next(customError("courseId is required", 400));
     }
-
-    const totalPages = Math.ceil(totalCount / limit);
-
-    res.status(200).json({
-      status: true,
-      data: {
-        list: formattedCourses,
-        pagination: {
-          totalCount,
-          totalPages,
-          currentPage: Math.floor(skip / limit) + 1,
-          limit,
-          hasNextPage: skip + limit < totalCount,
-          hasPreviousPage: skip > 0,
-        },
-      },
-    });
-  } catch (error) {
-    console.log("error in getAllCourses = ", error);
-    next(error);
-  }
-};
-
-export const getCourseDetail = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const { courseId } = req.params;
 
     const existingCourse = await prisma.course.findFirst({
-      where: {
-        id: String(courseId),
-      },
+      where: { id: courseId },
+      include: { detail: true, coursePrices: { where: { isActive: true } } },
+    });
+
+    if (!existingCourse) {
+      return next(customError("Course not found", 404));
+    }
+
+    if (level && !["beginner", "intermediate", "advanced"].includes(level)) {
+      return next(customError("Invalid level value", 400));
+    }
+
+    if (typeId) {
+      const existingType = await prisma.courseType.findFirst({
+        where: { id: Number(typeId) },
+      });
+      if (!existingType) {
+        return next(customError("typeId not found", 400));
+      }
+    }
+
+    if (teacherId) {
+      const existingUser = await prisma.user.findFirst({
+        where: { id: teacherId },
+        include: {
+          roles: { include: { role: true } },
+        },
+      });
+      if (!existingUser) {
+        return next(customError("User not found", 400));
+      }
+      const isTeacher = existingUser.roles.some(
+        (r) => r.role.name === "teacher",
+      );
+      if (!isTeacher) {
+        return next(customError("User is not a teacher", 400));
+      }
+    }
+
+    if (price !== undefined && (typeof price !== "number" || price <= 0)) {
+      return next(customError("Price must be a positive number", 400));
+    }
+
+    if (
+      capacity !== undefined &&
+      (typeof capacity !== "number" || capacity <= 0)
+    ) {
+      return next(customError("Capacity must be a positive number", 400));
+    }
+
+    let categoryIds: number[] = [];
+    if (courseCategoryIdsArray) {
+      if (Array.isArray(courseCategoryIdsArray)) {
+        categoryIds = courseCategoryIdsArray;
+      } else if (typeof courseCategoryIdsArray === "string") {
+        try {
+          categoryIds = JSON.parse(courseCategoryIdsArray);
+        } catch {
+          return next(customError("Invalid category IDs format", 400));
+        }
+      }
+      if (categoryIds.length > 0) {
+        const validCategories = await prisma.courseCategory.findMany({
+          where: { id: { in: categoryIds } },
+          select: { id: true },
+        });
+        const validIds = validCategories.map((c) => c.id);
+        const invalidIds = categoryIds.filter((id) => !validIds.includes(id));
+        if (invalidIds.length > 0) {
+          return next(
+            customError(`Invalid category IDs: ${invalidIds.join(", ")}`, 400),
+          );
+        }
+      }
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      const updateData: any = {};
+      if (title !== undefined) updateData.title = title;
+      if (shortDescription !== undefined)
+        updateData.shortDescription = shortDescription;
+      if (isFree !== undefined) updateData.isFree = Boolean(isFree);
+      if (level) updateData.level = level;
+      if (teacherId) updateData.teacherId = teacherId;
+      if (typeId) updateData.typeId = Number(typeId);
+      if (status) updateData.status = status;
+
+      const updatedCourse = await tx.course.update({
+        where: { id: courseId },
+        data: updateData,
+      });
+
+      if (price !== undefined) {
+        await tx.coursePrice.updateMany({
+          where: { courseId: courseId, isActive: true },
+          data: { isActive: false },
+        });
+        await tx.coursePrice.create({
+          data: {
+            courseId: courseId,
+            price: price,
+            isActive: true,
+          },
+        });
+      }
+
+      if (courseCategoryIdsArray) {
+        await tx.courseCategoryList.deleteMany({
+          where: { courseId: courseId },
+        });
+        for (const catId of categoryIds) {
+          await tx.courseCategoryList.create({
+            data: {
+              courseId: courseId,
+              categoryId: catId,
+            },
+          });
+        }
+      }
+
+      if (existingCourse.detail) {
+        const detailUpdateData: any = {};
+        if (fullDescription !== undefined)
+          detailUpdateData.fullDescription = fullDescription;
+        if (language !== undefined) detailUpdateData.language = language;
+        if (certificateAvailable !== undefined)
+          detailUpdateData.certificateAvailable = Boolean(certificateAvailable);
+        if (capacity !== undefined) detailUpdateData.capacity = capacity;
+        if (slug !== undefined) detailUpdateData.slug = slug;
+        if (duration !== undefined) detailUpdateData.duration = duration;
+
+        if (Object.keys(detailUpdateData).length > 0) {
+          await tx.courseDetail.update({
+            where: { courseId: courseId },
+            data: detailUpdateData,
+          });
+        }
+      } else {
+        return next(
+          customError(
+            "Course detail not found. Please complete step two first.",
+            400,
+          ),
+        );
+      }
+
+      return updatedCourse;
+    });
+
+    const finalCourse = await prisma.course.findFirst({
+      where: { id: courseId },
       include: {
+        detail: true,
         coursePrices: {
           where: { isActive: true },
+          take: 1,
         },
-        detail: true,
+        courseCategoryLists: {
+          include: { category: true },
+        },
         teacher: {
           select: {
             id: true,
             name: true,
-            userPictures: { where: { isMain: true } },
+            email: true,
           },
         },
         courseType: true,
-        courseCategoryLists: {
-          select: {
-            category: true,
-          },
-        },
       },
     });
 
-    if (!existingCourse) {
-      return next(
-        customError(
-          "course not found",
-          404,
-        ),
-      );
-    }
-
-    res.json({
-      message : true,
-      data : existingCourse
-    })
+    res.status(200).json({
+      status: true,
+      message: "Course updated successfully",
+      data: finalCourse,
+    });
   } catch (error) {
-    console.log("error in getCourseDetail = ", error);
+    console.log("error in updateCourse = ", error);
     next(error);
   }
 };
