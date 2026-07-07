@@ -223,18 +223,6 @@ model Course {
   coursePrices        CoursePrice[]
 }
 
-model CourseCategoryList {
-  courseId   String
-  categoryId Int
-
-  assignedAt DateTime @default(now())
-
-  course   Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  category CourseCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-
-  @@id([courseId, categoryId])
-}
-
 model CourseDetail {
   id                   String   @id @default(uuid())
   courseId             String   @unique
@@ -250,6 +238,20 @@ model CourseDetail {
 
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 }
+
+model CourseCategoryList {
+  courseId   String
+  categoryId Int
+
+  assignedAt DateTime @default(now())
+
+  course   Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  category CourseCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([courseId, categoryId])
+}
+
+
 
 model CoursePrice {
   id            String    @id @default(uuid())
