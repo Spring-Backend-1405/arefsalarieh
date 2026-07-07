@@ -1,0 +1,36 @@
+model Wallet {
+  id        String   @id @default(uuid())
+  balance   Int      @default(0)
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactions TransactionList[]
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model TransactionList {
+  id          String            @id @default(uuid())
+  amount      Int
+  type        TransactionType
+  status      TransactionStatus @default(PENDING)
+  description String?
+  refId       Int?
+  sheba       Int?
+  authority   String            @unique
+  walletId    String
+  wallet      Wallet            @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}

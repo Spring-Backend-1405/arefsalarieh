@@ -1,0 +1,71 @@
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum UserPermissionType {
+  ALLOW
+  DENY
+}
+
+model User {
+  id       String  @id @default(uuid())
+  email    String  @unique
+  password String
+  gender   Gender?
+  name     String
+  isActive Boolean @default(true)
+  isDelete Boolean @default(false)
+
+  verificationToken          String?
+  verificationTokenExpiresAt DateTime?
+  isEmailVerified            Boolean   @default(false)
+
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
+
+  twoFactorEnabled         Boolean   @default(false)
+  twoFactorSecret          String?
+  twoFactorSecretExpiresAt DateTime?
+
+  qrCodeEnabled         Boolean   @default(false)
+  qrCodeSecret          String?
+  qrCodeSecretExpiresAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  profile        Profile?
+  roles          UserRole[]
+  userPermission UserPermission[]
+  userPictures   UserPictures[]
+  wallet         Wallet?
+  courses        Course[]
+}
+
+model Profile {
+  id        String   @id @default(uuid())
+  phone     String?
+  country   String?
+  state     String?
+  city      String?
+  address   String?
+  bio       String?
+  createdAt DateTime @default(now())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserPictures {
+  id        String   @id @default(uuid())
+  filename  String
+  path      String
+  mimetype  String
+  size      Int
+  isMain    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
