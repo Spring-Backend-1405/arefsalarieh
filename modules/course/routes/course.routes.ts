@@ -1,6 +1,6 @@
 import express from "express";
 import { checkAuthentication } from "../../../middlewares/authMiddleware";
-import { createCourseHelper, createCourseStepOne, createCourseStepTwo, getAllCourses } from "../controllers/course.controller";
+import { createCourseHelper, createCourseStepOne, createCourseStepTwo, getAllCourses, getCourseDetail } from "../controllers/course.controller";
 
 
 const courseRouter = express.Router();
@@ -27,8 +27,12 @@ courseRouter.post(
 
 courseRouter.get(
   "/get-all-courses",
-  checkAuthentication,
   getAllCourses,
+);
+
+courseRouter.get(
+  "/get-course-detail/:courseId",
+  getCourseDetail,
 );
 
 export default courseRouter;

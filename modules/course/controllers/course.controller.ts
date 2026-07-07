@@ -284,9 +284,9 @@ export const getAllCourses = async (
 
     const totalCount = await prisma.course.count({ where });
 
-    const courses = await findCourses(where , orderBy , skip , limit)
+    const courses = await findCourses(where, orderBy, skip, limit);
 
-    let formattedCourses = selectedFields(courses)
+    let formattedCourses = selectedFields(courses);
 
     if (sortKey) {
       formattedCourses = formattedCourses.sort((a: any, b: any) => {
@@ -316,6 +316,58 @@ export const getAllCourses = async (
     });
   } catch (error) {
     console.log("error in getAllCourses = ", error);
+    next(error);
+  }
+};
+
+export const getCourseDetail = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { courseId } = req.params;
+
+    const existingCourse = await prisma.course.findFirst({
+      where: {
+        id: String(courseId),
+      },
+      include: {
+        coursePrices: {
+          where: { isActive: true },
+        },
+        detail: true,
+        teacher: {
+          select: {
+            id: true,
+            name: true,
+            userPictures: { where: { isMain: true } },
+          },
+        },
+        courseType: true,
+        courseCategoryLists: {
+          select: {
+            category: true,
+          },
+        },
+      },
+    });
+
+    if (!existingCourse) {
+      return next(
+        customError(
+          "course not found",
+          404,
+        ),
+      );
+    }
+
+    res.json({
+      message : true,
+      data : existingCourse
+    })
+  } catch (error) {
+    console.log("error in getCourseDetail = ", error);
     next(error);
   }
 };
