@@ -1,7 +1,11 @@
 import type { Request, Response, NextFunction } from "express";
 import { prisma } from "../../../utils/prisma";
 import { customError } from "../../../utils/customError";
-import { handleOrder, handlePagination, handleSearch } from "../../../utils/searchHelper";
+import {
+  handleOrder,
+  handlePagination,
+  handleSearch,
+} from "../../../utils/searchHelper";
 
 export const addNewCategory = async (
   req: Request,
@@ -34,13 +38,12 @@ export const getAllCategories = async (
   next: NextFunction,
 ) => {
   try {
-    const {categoryName , sortBy, order  } = req.query as any;
+    const { categoryName, sortBy, order } = req.query as any;
 
-    const searchWhere = handleSearch('categoryName', categoryName);
+    const searchWhere = handleSearch("categoryName", categoryName);
 
-    const allowedFields = ['categoryName'];
-    const orderBy = handleOrder(sortBy, order, allowedFields);
-
+    const allowedFields = { categoryName: "categoryName" };
+    const { orderBy } = handleOrder(sortBy, order, allowedFields);
 
     const { skip, limit } = handlePagination(req);
 
@@ -53,9 +56,9 @@ export const getAllCategories = async (
       orderBy,
       skip,
       take: limit,
-      include :{
-        children : true
-      }
+      include: {
+        children: true,
+      },
     });
 
     const totalPages = Math.ceil(totalCount / limit);
@@ -86,20 +89,18 @@ export const getcategoryDetail = async (
   next: NextFunction,
 ) => {
   try {
-    const {id } = req.query as any;
-
+    const { id } = req.query as any;
 
     const detail = await prisma.courseCategory.findFirst({
-      where:{id},
-      include :{
-        children : true
-      }
+      where: { id },
+      include: {
+        children: true,
+      },
     });
-
 
     res.status(200).json({
       status: true,
-      data: detail
+      data: detail,
     });
   } catch (error) {
     console.log("error in getAllUsers = ", error);
@@ -113,23 +114,22 @@ export const deleteCategory = async (
   next: NextFunction,
 ) => {
   try {
-    const {id} = req.params
+    const { id } = req.params;
 
     const deletedCategory = await prisma.courseCategory.delete({
-      where :{
-        id : Number(id)
-      }
-    })
+      where: {
+        id: Number(id),
+      },
+    });
 
-    if(!deletedCategory){
-        throw customError("this category doesnt exist", 404);
-
+    if (!deletedCategory) {
+      throw customError("this category doesnt exist", 404);
     }
 
     res.json({
-      message : 'category deleted successfulle',
-      deleteCategory
-    })
+      message: "category deleted successfulle",
+      deleteCategory,
+    });
   } catch (error) {
     console.log("error in getAllUsers = ", error);
     next(error);

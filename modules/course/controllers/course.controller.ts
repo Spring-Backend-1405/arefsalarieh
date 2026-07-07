@@ -5,7 +5,13 @@ import {
   handleOrder,
   handlePagination,
   handleSearch,
+  SortFieldMap,
 } from "../../../utils/searchHelper";
+import {
+  categoryFilter,
+  priceFilter,
+  whereFilter,
+} from "../services/course.service";
 
 export const createCourseHelper = async (
   req: Request,
@@ -244,119 +250,39 @@ export const getAllCourses = async (
   next: NextFunction,
 ) => {
   try {
-    const {
-      search,
-      typeId,
-      level,
-      minPrice,
-      maxPrice,
-      courseCategoryIdsArray,
-      count,
-    } = req.query;
+    const { sortBy, order } = req.query as any;
 
     const where: any = {
       status: "published",
     };
     const andConditions: any[] = [];
 
-    if (search && typeof search === "string") {
-      andConditions.push({
-        title: { contains: search, mode: "insensitive" },
-      });
-    }
-
-    if (typeId) {
-      andConditions.push({
-        typeId: Number(typeId),
-      });
-    }
-
-    if (level) {
-      andConditions.push({
-        level: level,
-      });
-    }
-
-    if (minPrice || maxPrice) {
-      const priceFilter: any = {};
-      if (minPrice) priceFilter.gte = Number(minPrice);
-      if (maxPrice) priceFilter.lte = Number(maxPrice);
-      andConditions.push({
-        coursePrices: {
-          some: {
-            isActive: true,
-            price: priceFilter,
-          },
-        },
-      });
-    }
-
-    if (courseCategoryIdsArray) {
-      let categoryIds: number[] = [];
-
-      if (Array.isArray(courseCategoryIdsArray)) {
-        categoryIds = (courseCategoryIdsArray as string[]).map(Number);
-      } else if (typeof courseCategoryIdsArray === "string") {
-        try {
-          categoryIds = JSON.parse(courseCategoryIdsArray);
-        } catch {
-          return next(customError("Invalid category IDs format", 400));
-        }
-      }
-
-      if (categoryIds.length > 0) {
-        const validCategories = await prisma.courseCategory.findMany({
-          where: { id: { in: categoryIds } },
-          select: { id: true },
-        });
-        const validIds = validCategories.map((c) => c.id);
-        const invalidIds = categoryIds.filter((id) => !validIds.includes(id));
-        if (invalidIds.length > 0) {
-          return next(
-            customError(`Invalid category IDs: ${invalidIds.join(", ")}`, 400),
-          );
-        }
-
-        const minCount = count ? Number(count) : 1;
-
-        const grouped = await prisma.courseCategoryList.groupBy({
-          by: ["courseId"],
-          where: {
-            categoryId: { in: categoryIds },
-          },
-          _count: {
-            categoryId: true,
-          },
-          having: {
-            categoryId: {
-              _count: {
-                gte: minCount,
-              },
-            },
-          },
-        });
-
-        const matchedCourseIds = grouped.map((g) => g.courseId);
-
-        if (matchedCourseIds.length === 0) {
-          return res.status(200).json({
-            status: true,
-            data: [],
-          });
-        }
-
-        andConditions.push({
-          id: { in: matchedCourseIds },
-        });
-      }
-    }
+    whereFilter(req, andConditions);
+    priceFilter(req, andConditions);
+    await categoryFilter(req, res, next, andConditions);
 
     if (andConditions.length > 0) {
       where.AND = andConditions;
     }
 
+    const sortFieldMap: SortFieldMap = {
+      title: "title",
+      createdAt: "createdAt",
+      totalStudent: "detail.totalStudent",
+      duration: "detail.duration",
+      price: "IN_MEMORY", 
+      discountPrice: "IN_MEMORY",
+    };
+
+    const { orderBy, sortKey, order: validOrder } = handleOrder(
+      sortBy,
+      order,
+      sortFieldMap,
+    );
+
     const courses = await prisma.course.findMany({
       where,
+      orderBy: Object.keys(orderBy).length > 0 ? orderBy : undefined,
       select: {
         id: true,
         title: true,
@@ -367,47 +293,30 @@ export const getAllCourses = async (
         updatedAt: true,
         isFree: true,
         teacher: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
+          select: { id: true, name: true, email: true },
         },
         courseType: {
-          select: {
-            id: true,
-            typeName: true,
-          },
+          select: { id: true, typeName: true },
         },
         coursePrices: {
           where: { isActive: true },
           take: 1,
-          select: {
-            price: true,
-            discountPrice: true,
-          },
+          select: { price: true, discountPrice: true },
         },
         courseCategoryLists: {
           select: {
             category: {
-              select: {
-                id: true,
-                categoryName: true,
-                parentId: true,
-              },
+              select: { id: true, categoryName: true, parentId: true },
             },
           },
         },
         detail: {
-          select: {
-            totalStudent: true,
-            duration: true,
-          },
+          select: { totalStudent: true, duration: true },
         },
       },
     });
 
-    const formattedCourses = courses.map((course: any) => ({
+    let formattedCourses = courses.map((course: any) => ({
       id: course.id,
       title: course.title,
       shortDescription: course.shortDescription,
@@ -429,6 +338,16 @@ export const getAllCourses = async (
       totalStudent: course.detail?.totalStudent || 0,
       duration: course.detail?.duration || null,
     }));
+
+    if (sortKey) {
+      formattedCourses = formattedCourses.sort((a: any, b: any) => {
+        const valA = a[sortKey] ?? 0;
+        const valB = b[sortKey] ?? 0;
+        if (valA < valB) return validOrder === "asc" ? -1 : 1;
+        if (valA > valB) return validOrder === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
 
     res.status(200).json({
       status: true,
