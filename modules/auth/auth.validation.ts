@@ -56,3 +56,31 @@ export const loginValidation = [
     .isLength({ min: 6, max: 40 })
     .withMessage("password must be 6 to 40 character"),
 ];
+
+
+export const loginStepTwoValidation = [
+  body("email").isEmail().withMessage("Invalid email").normalizeEmail(),
+  body("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
+  body("token").isString().isLength({ min: 6, max: 6 }).withMessage("Token must be 6 characters"),
+];
+
+export const forgotPasswordValidation = [
+  body("email").isEmail().withMessage("Invalid email").normalizeEmail(),
+  body("route").isString().withMessage("Route is required"),
+];
+
+export const resetPasswordValidation = [
+  body("email").isEmail().withMessage("Invalid email").normalizeEmail(),
+  body("token").isString().withMessage("Token is required"),
+  body("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
+];
+
+export const passwordValidation = [
+  body("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
+];
+
+export const qrCodeValidation = [
+  body("email").isEmail().withMessage("Invalid email").normalizeEmail(),
+  body("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
+  body("code").isString().isLength({ min: 6 }).withMessage("Code is required"),
+];
