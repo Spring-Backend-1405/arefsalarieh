@@ -27,8 +27,6 @@ const checkAuthentication = (
   }
 };
 
-
-
 const requirePermission = (resource: string, action: string) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -51,4 +49,29 @@ const requirePermission = (resource: string, action: string) => {
   };
 };
 
-export { checkAuthentication, requirePermission };
+const hasUser = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  let token = req.headers.authorization;
+  token = token?.split(" ")[1];
+  if (token) {
+    const user = checkJwtToken(token);
+    if (!user) customError("your token is not valid", 401);
+    const authUser = user as { id: number };
+
+    const authReq = req as any;
+
+    authReq.user = {
+      id: authUser.id,
+    };
+
+    next();
+  }
+
+    next();
+
+};
+
+export { checkAuthentication, requirePermission , hasUser };

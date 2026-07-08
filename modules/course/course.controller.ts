@@ -21,6 +21,9 @@ export const getAllCourses = async (
   next: NextFunction,
 ) => {
   try {
+    const authReq = req as any;
+    const id = authReq?.user?.id || "";
+
     const { sortBy, order } = req.query as any;
     const where: any = {
       status: "published",
@@ -54,7 +57,7 @@ export const getAllCourses = async (
 
     const totalCount = await prisma.course.count({ where });
 
-    const courses = await findCourses(where, orderBy, skip, limit);
+    const courses = await findCourses(where, orderBy, skip, limit , id);
 
     let formattedCourses = selectedFields(courses);
 

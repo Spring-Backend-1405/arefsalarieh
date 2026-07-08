@@ -118,44 +118,50 @@ export const findCourses = async (
   orderBy: any,
   skip: any,
   limit: any,
+  userId
 ): Promise<any> => {
   return await prisma.course.findMany({
-    where,
-    orderBy: Object.keys(orderBy).length > 0 ? orderBy : undefined,
-    select: {
-      id: true,
-      title: true,
-      shortDescription: true,
-      level: true,
-      status: true,
-      createdAt: true,
-      updatedAt: true,
-      isFree: true,
-      teacher: {
-        select: { id: true, name: true, email: true },
-      },
-      courseType: {
-        select: { id: true, typeName: true },
-      },
-      coursePrices: {
-        where: { isActive: true },
-        take: 1,
-        select: { price: true, discountPrice: true },
-      },
-      courseCategoryLists: {
-        select: {
-          category: {
-            select: { id: true, categoryName: true, parentId: true },
+      where,
+      orderBy: Object.keys(orderBy).length > 0 ? orderBy : undefined,
+      select: {
+        id: true,
+        title: true,
+        shortDescription: true,
+        level: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        isFree: true,
+        teacher: {
+          select: { id: true, name: true, email: true },
+        },
+        courseType: {
+          select: { id: true, typeName: true },
+        },
+        coursePrices: {
+          where: { isActive: true },
+          take: 1,
+          select: { price: true, discountPrice: true },
+        },
+        courseCategoryLists: {
+          select: {
+            category: {
+              select: { id: true, categoryName: true, parentId: true },
+            },
+          },
+        },
+        detail: {
+          select: { totalStudent: true, duration: true },
+        },
+        courseLikes: {
+          where: {
+            userId,
           },
         },
       },
-      detail: {
-        select: { totalStudent: true, duration: true },
-      },
-    },
-    skip,
-    take: limit,
-  });
+      skip,
+      take: limit,
+    });
 };
 
 
@@ -181,5 +187,6 @@ export const selectedFields =  (courses : any)   =>{
       categories: course.courseCategoryLists.map((item: any) => item.category),
       totalStudent: course.detail?.totalStudent || 0,
       duration: course.detail?.duration || null,
+      isLiked : course.courseLikes && course.courseLikes.length > 0 ? true : false
     }));
 }

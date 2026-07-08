@@ -1,5 +1,5 @@
 import express from "express";
-import { checkAuthentication, requirePermission } from "../../middlewares/authMiddleware";
+import { checkAuthentication, hasUser, requirePermission } from "../../middlewares/authMiddleware";
 import { validateMiddleware } from "../../middlewares/validateMiddleware";
 import {
   createCourseHelper,
@@ -22,6 +22,7 @@ const courseRouter = express.Router();
 
 courseRouter.get(
   "/get-all-courses",
+  hasUser,
   getAllCoursesValidation,
   validateMiddleware,
   getAllCourses,
