@@ -8,7 +8,12 @@ import {
   checkAuthentication,
   requirePermission,
 } from "../../../middlewares/authMiddleware";
+import { validateMiddleware } from "../../../middlewares/validateMiddleware";
 import { Actions, Resources } from "../../../constants/permissions";
+import {
+  addPermissionValidation,
+  deletePermissionValidation,
+} from "./permission.validation";
 
 const permissionRouter = express.Router();
 
@@ -22,12 +27,16 @@ permissionRouter.post(
   "/add-new-permission",
   checkAuthentication,
   requirePermission(Resources.PERMISSION, Actions.CREATE),
+  addPermissionValidation,
+  validateMiddleware,
   addNewPermission,
 );
 permissionRouter.delete(
   "/delete-permission/:permissionId",
   checkAuthentication,
   requirePermission(Resources.PERMISSION, Actions.DELETE),
+  deletePermissionValidation,
+  validateMiddleware,
   deletePermission,
 );
 
