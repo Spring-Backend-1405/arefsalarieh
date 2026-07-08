@@ -1,4 +1,10 @@
-import { body } from "express-validator";
+import { body, param, query } from "express-validator";
+
+const isValidUUID = (value: string) => {
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(value);
+};
 
 export const updateProfileValidation = [
   body("email")
@@ -66,4 +72,51 @@ export const updateProfileValidation = [
     .withMessage("Bio must be a string")
     .isLength({ max: 500 })
     .withMessage("Bio must be at most 500 characters"),
+];
+
+export const getAllUsersValidation = [
+  query("search").optional().isString().withMessage("search must be a string"),
+  query("name").optional().isString().withMessage("name must be a string"),
+  query("email").optional().isString().withMessage("email must be a string"),
+  query("gender")
+    .optional()
+    .isIn(["MALE", "FEMALE", "OTHER"])
+    .withMessage("gender must be MALE, FEMALE, or OTHER"),
+  query("isActive")
+    .optional()
+    .isBoolean()
+    .withMessage("isActive must be a boolean"),
+  query("isDelete")
+    .optional()
+    .isBoolean()
+    .withMessage("isDelete must be a boolean"),
+  query("country").optional().isString().withMessage("country must be a string"),
+  query("state").optional().isString().withMessage("state must be a string"),
+  query("city").optional().isString().withMessage("city must be a string"),
+  query("sortBy")
+    .optional()
+    .isIn(["name", "email", "gender", "createdAt", "isActive"])
+    .withMessage("sortBy must be one of: name, email, gender, createdAt, isActive"),
+  query("order")
+    .optional()
+    .isIn(["asc", "desc"])
+    .withMessage("order must be asc or desc"),
+  query("page")
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage("page must be a positive integer"),
+  query("limit")
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage("limit must be a positive integer"),
+];
+
+export const imageIdValidation = [
+  param("imageId")
+    .isString()
+    .withMessage("imageId must be a string")
+    .notEmpty()
+    .withMessage("imageId is required")
+    .custom(isValidUUID)
+    .withMessage("imageId must be a valid UUID"),
 ];
