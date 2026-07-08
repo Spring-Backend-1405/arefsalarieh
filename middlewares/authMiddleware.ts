@@ -41,7 +41,7 @@ const requirePermission = (resource: string, action: string) => {
 
       const hasAccess = await hasPermission(userId, resource, action);
       if (!hasAccess) {
-        return next(customError(`Forbidden: insufficient permissions ${resource}-${action}`, 403));
+        return next(customError(`Forbidden: insufficient permissions ${resource} ${action}`, 403));
       }
 
       next();

@@ -9,7 +9,8 @@ export const Resources = {
   ROLEPERMISSION : 'role-permission',
   USERPERMISSION : 'user-permission',
   WALLET : 'wallet',
-  CATEGPRY : 'category'
+  CATEGPRY : 'category',
+  COURSETYPE : 'course-type'
 } as const;
 
 export const Actions = {
@@ -20,7 +21,8 @@ export const Actions = {
   LIKE: 'like',
   ENROLL: 'enroll',
   FAVORITE: 'favorite',
-  CONFIRMWITHDRAW : 'confirm-withdraw'
+  CONFIRMWITHDRAW : 'confirm-withdraw',
+  GENERAL : 'general'
 } as const;
 
 export const Roles = {
