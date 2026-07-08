@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { prisma } from "../../../utils/prisma";
 import { customError } from "../../../utils/customError";
+import { Resources, Actions } from "../../../constants/permissions";
 
 export const getAllPermissions = async (
   req: Request,
@@ -18,6 +19,17 @@ export const getAllPermissions = async (
     console.log("error in getAllPermissions = ", error);
     next(error);
   }
+};
+
+export const getResourcesAndActions = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  res.json({
+    message: true,
+    data: { resources : Resources , actions : Actions },
+  });
 };
 
 export const addNewPermission = async (

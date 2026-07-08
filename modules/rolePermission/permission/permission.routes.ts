@@ -3,6 +3,7 @@ import {
   addNewPermission,
   deletePermission,
   getAllPermissions,
+  getResourcesAndActions,
 } from "./permission.controller";
 import {
   checkAuthentication,
@@ -23,6 +24,14 @@ permissionRouter.get(
   requirePermission(Resources.PERMISSION, Actions.READ),
   getAllPermissions,
 );
+
+permissionRouter.get(
+  "/get-resources-and-actions",
+  checkAuthentication,
+  requirePermission(Resources.PERMISSION, Actions.READ),
+  getResourcesAndActions,
+);
+
 permissionRouter.post(
   "/add-new-permission",
   checkAuthentication,
