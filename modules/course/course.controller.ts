@@ -57,7 +57,7 @@ export const getAllCourses = async (
 
     const totalCount = await prisma.course.count({ where });
 
-    const courses = await findCourses(where, orderBy, skip, limit , id);
+    const courses = await findCourses(where, orderBy, skip, limit, id);
 
     let formattedCourses = selectedFields(courses);
 
@@ -99,9 +99,12 @@ export const getCourseDetail = async (
   next: NextFunction,
 ) => {
   try {
+    const authReq = req as any;
+    const id = authReq?.user?.id || "";
+
     const { courseId } = req.params;
 
-    const existingCourse = await prisma.course.findFirst({
+    let existingCourse = await prisma.course.findFirst({
       where: {
         id: String(courseId),
       },
@@ -123,12 +126,16 @@ export const getCourseDetail = async (
             category: true,
           },
         },
+        courseLikes: {
+          where: {userId : id},
+        },
       },
     });
 
     if (!existingCourse) {
       return next(customError("course not found", 404));
     }
+
 
     res.json({
       message: true,

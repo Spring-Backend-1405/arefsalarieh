@@ -3,7 +3,6 @@ import type { Request, Response, NextFunction } from "express";
 import { checkJwtToken } from "../utils/tokenHelper";
 import { hasPermission } from "../utils/permission";
 
-
 const checkAuthentication = (
   req: Request,
   res: Response,
@@ -30,7 +29,7 @@ const checkAuthentication = (
 const requirePermission = (resource: string, action: string) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-    const req2 = req as any
+      const req2 = req as any;
 
       const userId = req2.user?.id;
       if (!userId) {
@@ -39,7 +38,12 @@ const requirePermission = (resource: string, action: string) => {
 
       const hasAccess = await hasPermission(userId, resource, action);
       if (!hasAccess) {
-        return next(customError(`Forbidden: insufficient permissions ${resource} ${action}`, 403));
+        return next(
+          customError(
+            `Forbidden: insufficient permissions ${resource} ${action}`,
+            403,
+          ),
+        );
       }
 
       next();
@@ -49,11 +53,7 @@ const requirePermission = (resource: string, action: string) => {
   };
 };
 
-const hasUser = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+const hasUser = (req: Request, res: Response, next: NextFunction) => {
   let token = req.headers.authorization;
   token = token?.split(" ")[1];
   if (token) {
@@ -70,8 +70,7 @@ const hasUser = (
     next();
   }
 
-    next();
-
+  next();
 };
 
-export { checkAuthentication, requirePermission , hasUser };
+export { checkAuthentication, requirePermission, hasUser };

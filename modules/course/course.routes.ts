@@ -22,8 +22,8 @@ const courseRouter = express.Router();
 
 courseRouter.get(
   "/get-all-courses",
-  hasUser,
   getAllCoursesValidation,
+  hasUser,
   validateMiddleware,
   getAllCourses,
 );
@@ -31,6 +31,7 @@ courseRouter.get(
 courseRouter.get(
   "/get-course-detail/:courseId",
   getCourseDetailValidation,
+  hasUser,
   validateMiddleware,
   getCourseDetail,
 );
