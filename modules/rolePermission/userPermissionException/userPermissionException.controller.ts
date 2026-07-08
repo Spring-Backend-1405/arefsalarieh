@@ -41,21 +41,27 @@ export const getUserPermissions = async (
     const rolePermissionsSet = new Set<string>();
     for (const userRole of user.roles) {
       for (const rp of userRole.role.rolePermissions) {
-        rolePermissionsSet.add(`${rp.permission.resource}:${rp.permission.action}`);
+        rolePermissionsSet.add(
+          `${rp.permission.resource}:${rp.permission.action}`,
+        );
       }
     }
 
     const allowPermissionsSet = new Set<string>();
     for (const up of user.userPermission) {
       if (up.type === "ALLOW") {
-        allowPermissionsSet.add(`${up.permission.resource}:${up.permission.action}`);
+        allowPermissionsSet.add(
+          `${up.permission.resource}:${up.permission.action}`,
+        );
       }
     }
 
     const denyPermissionsSet = new Set<string>();
     for (const up of user.userPermission) {
       if (up.type === "DENY") {
-        denyPermissionsSet.add(`${up.permission.resource}:${up.permission.action}`);
+        denyPermissionsSet.add(
+          `${up.permission.resource}:${up.permission.action}`,
+        );
       }
     }
 
@@ -88,6 +94,35 @@ export const getUserPermissions = async (
     next(error);
   }
 };
+
+export const getUserExceptionPermissions = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { userId } = req.params;
+
+    const exeptPermissions = await prisma.userPermission.findMany({
+      where: {
+        userId: String(userId),
+      },
+    });
+
+    if (!exeptPermissions) {
+      return next(customError("exept Permissions doesn't exist", 404));
+    }
+
+    res.json({
+      message : true,
+      data : exeptPermissions
+    })
+  } catch (error) {
+    console.log("error in getUserExceptionPermissions = ", error);
+    next(error);
+  }
+};
+
 export const addPermissionToUser = async (
   req: Request,
   res: Response,

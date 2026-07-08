@@ -4,6 +4,7 @@ import {
   deleteDenyPermissionFromUser,
   deletePermissionFromUser,
   denyPermissionToUser,
+  getUserExceptionPermissions,
   getUserPermissions,
 } from "./userPermissionException.controller";
 import {
@@ -29,6 +30,15 @@ userPermissionException.get(
   getUserPermissionsValidation,
   validateMiddleware,
   getUserPermissions,
+);
+
+userPermissionException.get(
+  "/get-user-exeption-permission/:userId",
+  checkAuthentication,
+  requirePermission(Resources.USERPERMISSION, Actions.READ),
+  getUserPermissionsValidation,
+  validateMiddleware,
+  getUserExceptionPermissions,
 );
 
 userPermissionException.post(
