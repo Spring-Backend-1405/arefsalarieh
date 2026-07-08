@@ -158,6 +158,11 @@ export const findCourses = async (
             userId,
           },
         },
+       courseDisLikes: {
+          where: {
+            userId,
+          },
+        },        
       },
       skip,
       take: limit,
@@ -187,6 +192,7 @@ export const selectedFields =  (courses : any)   =>{
       categories: course.courseCategoryLists.map((item: any) => item.category),
       totalStudent: course.detail?.totalStudent || 0,
       duration: course.detail?.duration || null,
-      isLiked : course.courseLikes && course.courseLikes.length > 0 ? true : false
+      isLiked : course.courseLikes && course.courseLikes.length > 0 ? true : false,
+      isDisLiked : course.courseDisLikes && course.courseDisLikes.length > 0 ? true : false,
     }));
 }

@@ -129,6 +129,9 @@ export const getCourseDetail = async (
         courseLikes: {
           where: {userId : id},
         },
+        courseDisLikes : {
+          where: {userId : id},
+        }
       },
     });
 
