@@ -1,4 +1,3 @@
-// modules/rolePermission/userPermissionException/userPermissionException.routes.ts
 import express from "express";
 import {
   addPermissionToUser,

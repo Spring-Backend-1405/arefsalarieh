@@ -1,4 +1,3 @@
-// modules/wallet/wallet.routes.ts
 import express from "express";
 import {
   checkAuthentication,

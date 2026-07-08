@@ -1,4 +1,3 @@
-// modules/course/category/category.routes.ts
 import express from "express";
 import {
   addNewCategory,

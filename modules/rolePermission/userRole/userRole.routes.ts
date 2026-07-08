@@ -1,4 +1,3 @@
-// modules/rolePermission/userRole/userRole.routes.ts
 import express from "express";
 import {
   checkAuthentication,
