@@ -2,7 +2,6 @@ import type { Request, Response, NextFunction } from "express";
 import { prisma } from "../../../utils/prisma";
 import { customError } from "../../../utils/customError";
 
-
 export const getUserPermissions = async (
   req: Request,
   res: Response,
@@ -11,11 +10,22 @@ export const getUserPermissions = async (
   try {
     const { userId } = req.params;
 
-    const exeptionPermisiion = await prisma.user.findFirst({
-      where: {
-        id: String(userId),
-      },
+    const user = await prisma.user.findFirst({
+      where: { id: String(userId) },
       include: {
+        roles: {
+          include: {
+            role: {
+              include: {
+                rolePermissions: {
+                  include: {
+                    permission: true,
+                  },
+                },
+              },
+            },
+          },
+        },
         userPermission: {
           include: {
             permission: true,
@@ -24,20 +34,60 @@ export const getUserPermissions = async (
       },
     });
 
-    if (!exeptionPermisiion) {
-      return next(customError("user doesnt exist", 400));
+    if (!user) {
+      return next(customError("User doesn't exist", 404));
     }
 
+    const rolePermissionsSet = new Set<string>();
+    for (const userRole of user.roles) {
+      for (const rp of userRole.role.rolePermissions) {
+        rolePermissionsSet.add(`${rp.permission.resource}:${rp.permission.action}`);
+      }
+    }
+
+    const allowPermissionsSet = new Set<string>();
+    for (const up of user.userPermission) {
+      if (up.type === "ALLOW") {
+        allowPermissionsSet.add(`${up.permission.resource}:${up.permission.action}`);
+      }
+    }
+
+    const denyPermissionsSet = new Set<string>();
+    for (const up of user.userPermission) {
+      if (up.type === "DENY") {
+        denyPermissionsSet.add(`${up.permission.resource}:${up.permission.action}`);
+      }
+    }
+
+    const finalPermissions = new Set<string>(rolePermissionsSet);
+    for (const allow of allowPermissionsSet) {
+      finalPermissions.add(allow);
+    }
+    for (const deny of denyPermissionsSet) {
+      finalPermissions.delete(deny);
+    }
+
+    const permissionsList = Array.from(finalPermissions).map((perm) => {
+      const [resource, action] = perm.split(":");
+      return { resource, action };
+    });
+
     res.status(200).json({
-      message: true,
-      data: exeptionPermisiion,
+      status: true,
+      data: {
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        },
+        permissions: permissionsList,
+      },
     });
   } catch (error) {
     console.log("error in getUserPermissions = ", error);
     next(error);
   }
 };
-
 export const addPermissionToUser = async (
   req: Request,
   res: Response,
@@ -108,15 +158,14 @@ export const deletePermissionFromUser = async (
     });
 
     res.status(200).json({
-        message : true,
-        data : deletedPermission
-    })
+      message: true,
+      data: deletedPermission,
+    });
   } catch (error) {
     console.log("error in addPermissionToUser = ", error);
     next(error);
   }
 };
-
 
 export const denyPermissionToUser = async (
   req: Request,
@@ -133,7 +182,9 @@ export const denyPermissionToUser = async (
     });
 
     if (existingUserPermission) {
-      return next(customError("permission deny already exist for this user", 400));
+      return next(
+        customError("permission deny already exist for this user", 400),
+      );
     }
 
     const denyUserPermission = await prisma.userPermission.findFirst({
@@ -165,7 +216,6 @@ export const denyPermissionToUser = async (
   }
 };
 
-
 export const deleteDenyPermissionFromUser = async (
   req: Request,
   res: Response,
@@ -181,7 +231,9 @@ export const deleteDenyPermissionFromUser = async (
     });
 
     if (!existingUserPermission) {
-      return next(customError("deny permission doesnt exist for this user", 400));
+      return next(
+        customError("deny permission doesnt exist for this user", 400),
+      );
     }
 
     const deletedPermission = await prisma.userPermission.delete({
@@ -189,9 +241,9 @@ export const deleteDenyPermissionFromUser = async (
     });
 
     res.status(200).json({
-        message : true,
-        data : deletedPermission
-    })
+      message: true,
+      data: deletedPermission,
+    });
   } catch (error) {
     console.log("error in addPermissionToUser = ", error);
     next(error);
