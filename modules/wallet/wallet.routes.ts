@@ -1,8 +1,10 @@
+// modules/wallet/wallet.routes.ts
 import express from "express";
 import {
   checkAuthentication,
   requirePermission,
 } from "../../middlewares/authMiddleware";
+import { validateMiddleware } from "../../middlewares/validateMiddleware";
 import {
   confirmWithdraw,
   paymentRequest,
@@ -10,19 +12,45 @@ import {
   withdrawRequest,
 } from "./wallet.controller";
 import { Actions, Resources } from "../../constants/permissions";
+import {
+  paymentRequestValidation,
+  paymentResultValidation,
+  withdrawRequestValidation,
+  confirmWithdrawValidation,
+} from "./wallet.validation";
 
 const walletRouter = express.Router();
 
-walletRouter.post("/payment-request", checkAuthentication, paymentRequest);
+walletRouter.post(
+  "/payment-request",
+  checkAuthentication,
+  paymentRequestValidation,
+  validateMiddleware,
+  paymentRequest,
+);
 
-walletRouter.get("/payment-result", checkAuthentication, paymentResult);
+walletRouter.get(
+  "/payment-result",
+  checkAuthentication,
+  paymentResultValidation,
+  validateMiddleware,
+  paymentResult,
+);
 
-walletRouter.post("/withdraw-request", checkAuthentication, withdrawRequest);
+walletRouter.post(
+  "/withdraw-request",
+  checkAuthentication,
+  withdrawRequestValidation,
+  validateMiddleware,
+  withdrawRequest,
+);
 
 walletRouter.post(
   "/confirm-withdraw",
   checkAuthentication,
   requirePermission(Resources.WALLET, Actions.CONFIRMWITHDRAW),
+  confirmWithdrawValidation,
+  validateMiddleware,
   confirmWithdraw,
 );
 
