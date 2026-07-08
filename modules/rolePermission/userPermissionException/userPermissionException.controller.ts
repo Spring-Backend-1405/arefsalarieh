@@ -107,6 +107,9 @@ export const getUserExceptionPermissions = async (
       where: {
         userId: String(userId),
       },
+      include : {
+        permission : true
+      }
     });
 
     if (!exeptPermissions) {

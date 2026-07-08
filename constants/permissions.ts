@@ -8,7 +8,8 @@ export const Resources = {
   PERMISSION : 'permission',
   ROLEPERMISSION : 'role-permission',
   USERPERMISSION : 'user-permission',
-  WALLET : 'wallet'
+  WALLET : 'wallet',
+  CATEGPRY : 'category'
 } as const;
 
 export const Actions = {

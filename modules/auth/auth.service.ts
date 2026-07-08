@@ -129,6 +129,7 @@ export const userForResponse = (user: any) => {
     twoFactorEnabled: user.twoFactorEnabled,
     qrCodeEnabled: user.qrCodeEnabled,
     createdAt: user.createdAt,
+    roles : user.roles
   };
 };
 

@@ -204,16 +204,18 @@ export const handleLogin = async (
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    const existingUser = await findUser(
-      { email: normalizedEmail },
-      {
-        roles: {
-          include: {
-            role: true,
-          },
-        },
+    const existingUser = await prisma.user.findFirst({
+      where : {
+        email : normalizedEmail
       },
-    );
+      include : {
+        roles : {
+          include : {
+            role : true
+          }
+        }
+      }
+    })
 
     if (!existingUser) {
       return next(customError("User doesn't exist", 400));

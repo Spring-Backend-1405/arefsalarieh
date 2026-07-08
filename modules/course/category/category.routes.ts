@@ -5,7 +5,7 @@ import {
   getAllCategories,
   getcategoryDetail,
 } from "./category.controller";
-import { checkAuthentication } from "../../../middlewares/authMiddleware";
+import { checkAuthentication, requirePermission } from "../../../middlewares/authMiddleware";
 import { validateMiddleware } from "../../../middlewares/validateMiddleware";
 import {
   addCategoryValidation,
@@ -13,12 +13,14 @@ import {
   getCategoryDetailValidation,
   deleteCategoryValidation,
 } from "./category.validation";
+import { Actions, Resources } from "../../../constants/permissions";
 
 const categoryRouter = express.Router();
 
 categoryRouter.post(
   "/add-new-category",
   checkAuthentication,
+  requirePermission(Resources.CATEGPRY, Actions.CREATE),
   addCategoryValidation,
   validateMiddleware,
   addNewCategory,
@@ -27,6 +29,7 @@ categoryRouter.post(
 categoryRouter.get(
   "/get-all-categories",
   checkAuthentication,
+  requirePermission(Resources.CATEGPRY, Actions.READ),
   getAllCategoriesValidation,
   validateMiddleware,
   getAllCategories,
@@ -35,6 +38,7 @@ categoryRouter.get(
 categoryRouter.get(
   "/detail/:id",
   checkAuthentication,
+  requirePermission(Resources.CATEGPRY, Actions.READ),
   getCategoryDetailValidation,
   validateMiddleware,
   getcategoryDetail,
@@ -43,6 +47,7 @@ categoryRouter.get(
 categoryRouter.delete(
   "/delete/:id",
   checkAuthentication,
+  requirePermission(Resources.CATEGPRY, Actions.DELETE),
   deleteCategoryValidation,
   validateMiddleware,
   deleteCategory,
