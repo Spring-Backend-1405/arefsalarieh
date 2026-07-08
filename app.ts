@@ -14,6 +14,7 @@ import categoryRouter from "./modules/course/category/category.routes";
 import courseTypeRouter from "./modules/course/courseType/courseType.routes";
 import courseRouter from "./modules/course/course.routes";
 import userRoleRouter from "./modules/rolePermission/userRole/userRole.routes";
+import courseLike from "./modules/course/courseLike/courseLike.routes";
 
 export const createApp = () => {
   const app = express();
@@ -35,10 +36,10 @@ export const createApp = () => {
   app.use("/api/role-permission", rolePermissionRouter);
   app.use("/api/user-permission-exception", userPermissionException);
   app.use("/api/wallet", walletRouter);
-  app.use("/api/category", categoryRouter);
+  app.use("/api/course-category", categoryRouter);
   app.use("/api/courseType", courseTypeRouter);
   app.use("/api/course", courseRouter);
-  
+  app.use("/api/course-like", courseLike);
 
   app.use(errorMiddleware);
 

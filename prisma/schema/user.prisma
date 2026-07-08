@@ -41,6 +41,8 @@ model User {
   userPictures   UserPictures[]
   wallet         Wallet?
   courses        Course[]
+  courseLikes         CourseLike[]
+
 }
 
 model Profile {

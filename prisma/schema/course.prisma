@@ -44,6 +44,7 @@ model Course {
   courseCategoryLists CourseCategoryList[]
   detail              CourseDetail?
   coursePrices        CoursePrice[]
+  courseLikes         CourseLike[]
 }
 
 model CourseDetail {
@@ -74,16 +75,24 @@ model CourseCategoryList {
   @@id([courseId, categoryId])
 }
 
-
-
 model CoursePrice {
   id            String    @id @default(uuid())
-  courseId String
+  courseId      String
   price         Int
   discountPrice Int?
   startAt       DateTime?
   endAt         DateTime?
   isActive      Boolean   @default(false)
 
-  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+model CourseLike {
+  courseId String
+  userId   String
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([courseId, userId])
 }
