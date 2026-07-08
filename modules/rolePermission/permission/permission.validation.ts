@@ -1,4 +1,5 @@
 import { body, param } from "express-validator";
+import { Resources, Actions } from "../../../constants/permissions";
 
 const isValidUUID = (value: string) => {
   const uuidRegex =
@@ -6,21 +7,24 @@ const isValidUUID = (value: string) => {
   return uuidRegex.test(value);
 };
 
+const validResources = Object.values(Resources);
+const validActions = Object.values(Actions);
+
 export const addPermissionValidation = [
   body("resource")
     .isString()
     .withMessage("resource must be a string")
     .notEmpty()
     .withMessage("resource is required")
-    .isLength({ min: 2, max: 50 })
-    .withMessage("resource must be between 2 and 50 characters"),
+    .isIn(validResources)
+    .withMessage(`resource must be one of: ${validResources.join(", ")}`),
   body("action")
     .isString()
     .withMessage("action must be a string")
     .notEmpty()
     .withMessage("action is required")
-    .isIn(["CREATE", "READ", "UPDATE", "DELETE", "MANAGE"])
-    .withMessage("action must be one of: CREATE, READ, UPDATE, DELETE, MANAGE"),
+    .isIn(validActions)
+    .withMessage(`action must be one of: ${validActions.join(", ")}`),
   body("description")
     .optional()
     .isString()

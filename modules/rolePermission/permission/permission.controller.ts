@@ -56,16 +56,15 @@ export const addNewPermission = async (
   }
 };
 
-
 export const deletePermission = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const {permissionId} = req.params
+    const { permissionId } = req.params;
 
-  const existingPermission = await prisma.permission.findUnique({
+    const existingPermission = await prisma.permission.findUnique({
       where: { id: String(permissionId) },
     });
 
@@ -80,7 +79,6 @@ export const deletePermission = async (
     if (!deletePermission) {
       return next(customError("permission doesnt exist", 400));
     }
-
 
     res.status(200).json({
       message: true,
