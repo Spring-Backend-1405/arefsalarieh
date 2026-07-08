@@ -11,11 +11,11 @@ export const likeCourse = async (
     const authReq = req as any;
     const { id } = authReq.user;
 
-    const { courseId } = req.body;
+    const { courseId } = req.params;
 
     const existingLike = await prisma.courseLike.findFirst({
       where: {
-        AND: [{ courseId }, { userId : id }],
+        AND: [{ courseId: String(courseId) }, { userId: id }],
       },
     });
 
@@ -25,14 +25,112 @@ export const likeCourse = async (
 
     const addCourseLike = await prisma.courseLike.create({
       data: {
-        courseId,
-        userId : id,
+        courseId: String(courseId),
+        userId: id,
       },
     });
 
     res.status(201).json({
       message: true,
       data: addCourseLike,
+    });
+  } catch (error) {
+    console.log("error in likeCourse = ", error);
+    next(error);
+  }
+};
+
+export const deleteCourseLike = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const authReq = req as any;
+    const { id } = authReq.user;
+    const { courseId } = req.params;
+
+    const existingLike = await prisma.courseLike.findUnique({
+      where: {
+        courseId_userId: {
+          courseId: String(courseId),
+          userId: id,
+        },
+      },
+    });
+
+    if (!existingLike) {
+      return next(customError("You haven't liked this course yet", 404));
+    }
+
+    const deletedLike = await prisma.courseLike.delete({
+      where: {
+        courseId_userId: {
+          courseId: String(courseId),
+          userId: id,
+        },
+      },
+    });
+
+    res.status(200).json({
+      status: true,
+      message: "Like removed successfully",
+      data: deletedLike,
+    });
+  } catch (error) {
+    console.log("error in deleteCourseLike = ", error);
+    next(error);
+  }
+};
+
+export const disLikeCourse = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const authReq = req as any;
+    const { id } = authReq.user;
+
+    const { courseId } = req.params;
+
+    const existingDisLike = await prisma.courseDisLike.findFirst({
+      where: {
+        AND: [{ courseId: String(courseId) }, { userId: id }],
+      },
+    });
+
+    if (existingDisLike) {
+      return customError("you already disLiked this course", 400);
+    }
+
+    const existingLike = await prisma.courseLike.findFirst({
+      where: {
+        AND: [{ courseId: String(courseId) }, { userId: id }],
+      },
+    });
+
+    if (existingLike) {
+      await prisma.courseLike.delete({
+        where: {
+          courseId_userId: {
+            courseId: String(courseId),
+            userId: id,
+          },
+        },
+      });
+    }
+
+    const addCourseDisLike = await prisma.courseDisLike.create({
+      data: {
+        courseId: String(courseId),
+        userId: id,
+      },
+    });
+
+    res.status(201).json({
+      message: true,
+      data: addCourseDisLike,
     });
   } catch (error) {
     console.log("error in likeCourse = ", error);

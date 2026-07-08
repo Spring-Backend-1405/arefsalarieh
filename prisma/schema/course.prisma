@@ -45,6 +45,7 @@ model Course {
   detail              CourseDetail?
   coursePrices        CoursePrice[]
   courseLikes         CourseLike[]
+  courseDisLikes      CourseDisLike[]
 }
 
 model CourseDetail {
@@ -88,6 +89,16 @@ model CoursePrice {
 }
 
 model CourseLike {
+  courseId String
+  userId   String
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([courseId, userId])
+}
+
+model CourseDisLike {
   courseId String
   userId   String
 

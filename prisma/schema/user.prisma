@@ -42,7 +42,7 @@ model User {
   wallet         Wallet?
   courses        Course[]
   courseLikes         CourseLike[]
-
+  courseDisLikes         CourseDisLike[]
 }
 
 model Profile {
