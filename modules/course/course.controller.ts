@@ -59,7 +59,7 @@ export const getAllCourses = async (
 
     const courses = await findCourses(where, orderBy, skip, limit, id);
 
-    let formattedCourses = selectedFields(courses , id);
+    let formattedCourses = selectedFields(courses, id);
 
     if (sortKey) {
       formattedCourses = formattedCourses.sort((a: any, b: any) => {
@@ -126,12 +126,8 @@ export const getCourseDetail = async (
             category: true,
           },
         },
-        courseLikes: {
-          where: {userId : id},
-        },
-        courseDisLikes : {
-          where: {userId : id},
-        }
+        courseLikes: true,
+        courseDisLikes: true,
       },
     });
 
@@ -139,10 +135,27 @@ export const getCourseDetail = async (
       return next(customError("course not found", 404));
     }
 
+    const likeCount =
+      existingCourse.courseLikes && existingCourse.courseLikes.length;
+    const isLiked =
+      existingCourse.courseLikes &&
+      existingCourse.courseLikes.some((item: any) => item.userId === id);
+    const disLikeCount =
+      existingCourse.courseDisLikes && existingCourse.courseDisLikes.length;
+    const isDisLiked =
+      existingCourse.courseDisLikes &&
+      existingCourse.courseDisLikes.some((item: any) => item.userId === id);
 
+    const { courseLikes, courseDisLikes, ...corseForResponse } = {
+      ...existingCourse,
+      likeCount,
+      isLiked,
+      disLikeCount,
+      isDisLiked,
+    };
     res.json({
       message: true,
-      data: existingCourse,
+      data: corseForResponse,
     });
   } catch (error) {
     console.log("error in getCourseDetail = ", error);
