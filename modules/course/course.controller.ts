@@ -9,7 +9,9 @@ import {
 } from "../../utils/searchHelper";
 import {
   categoryFilter,
+  findCourseDetail,
   findCourses,
+  handleCorseDetailResponse,
   priceFilter,
   selectedFields,
   whereFilter,
@@ -104,55 +106,14 @@ export const getCourseDetail = async (
 
     const { courseId } = req.params;
 
-    let existingCourse = await prisma.course.findFirst({
-      where: {
-        id: String(courseId),
-      },
-      include: {
-        coursePrices: {
-          where: { isActive: true },
-        },
-        detail: true,
-        teacher: {
-          select: {
-            id: true,
-            name: true,
-            userPictures: { where: { isMain: true } },
-          },
-        },
-        courseType: true,
-        courseCategoryLists: {
-          select: {
-            category: true,
-          },
-        },
-        courseLikes: true,
-        courseDisLikes: true,
-      },
-    });
+    let existingCourse = await findCourseDetail(String(courseId));
 
     if (!existingCourse) {
       return next(customError("course not found", 404));
     }
 
-    const likeCount =
-      existingCourse.courseLikes && existingCourse.courseLikes.length;
-    const isLiked =
-      existingCourse.courseLikes &&
-      existingCourse.courseLikes.some((item: any) => item.userId === id);
-    const disLikeCount =
-      existingCourse.courseDisLikes && existingCourse.courseDisLikes.length;
-    const isDisLiked =
-      existingCourse.courseDisLikes &&
-      existingCourse.courseDisLikes.some((item: any) => item.userId === id);
-
-    const { courseLikes, courseDisLikes, ...corseForResponse } = {
-      ...existingCourse,
-      likeCount,
-      isLiked,
-      disLikeCount,
-      isDisLiked,
-    };
+    const corseForResponse = handleCorseDetailResponse(existingCourse, id);
+    
     res.json({
       message: true,
       data: corseForResponse,
