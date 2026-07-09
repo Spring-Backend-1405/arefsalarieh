@@ -59,7 +59,7 @@ export const getAllCourses = async (
 
     const courses = await findCourses(where, orderBy, skip, limit, id);
 
-    let formattedCourses = selectedFields(courses);
+    let formattedCourses = selectedFields(courses , id);
 
     if (sortKey) {
       formattedCourses = formattedCourses.sort((a: any, b: any) => {
