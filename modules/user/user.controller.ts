@@ -22,10 +22,24 @@ export const getUserProfile = async (
     const authReq = req as any;
     const { id } = authReq.user;
 
-    const existingUser = await findUser(
-      { id },
-      { profile: true, userPictures: true , wallet : true },
-    );
+    const existingUser = await prisma.user.findFirst({
+      where: { id },
+      include: {
+        profile: true,
+        userPictures: true,
+        wallet: true,
+        roles: {
+          include: {
+            role: {
+              include: { rolePermissions: { include: { permission: true } } },
+            },
+          },
+        },
+        userPermission: {
+          include: { permission: true },
+        },
+      },
+    });
 
     if (!existingUser) {
       return next(customError("User not found", 404));
@@ -33,19 +47,45 @@ export const getUserProfile = async (
 
     const baseUrl = `${req.protocol}://${req.get("host")}`;
 
+    const rolesWithPermissions = existingUser.roles.map((userRole) => ({
+      id: userRole.role.id,
+      name: userRole.role.name,
+      permissions: userRole.role.rolePermissions.map(
+        (rp) => `${rp.permission.resource}:${rp.permission.action}`,
+      ),
+    }));
+
+    const exceptionPermissions = existingUser.userPermission.map((up) => ({
+      resource: up.permission.resource,
+      action: up.permission.action,
+      type: up.type,
+    }));
+
     const userWithImageUrls = {
-      ...existingUser,
+      id: existingUser.id,
+      name: existingUser.name,
+      email: existingUser.email,
+      gender: existingUser.gender,
+      isActive: existingUser.isActive,
+      isDelete: existingUser.isDelete,
+      isEmailVerified: existingUser.isEmailVerified,
+      twoFactorEnabled: existingUser.twoFactorEnabled,
+      qrCodeEnabled: existingUser.qrCodeEnabled,
+      createdAt: existingUser.createdAt,
+      profile: existingUser.profile,
+      wallet: existingUser.wallet,
       userPictures: existingUser.userPictures.map((pic: any) => ({
         ...pic,
         url: `${baseUrl}/api/user/image/${pic.id}`,
       })),
+      roles: rolesWithPermissions,
+      userExceptionPermissions: exceptionPermissions,
     };
 
-    const { password: _, ...userWithoutPassword } = userWithImageUrls;
 
     res.status(200).json({
       status: true,
-      data: userWithoutPassword,
+      data: userWithImageUrls,
     });
   } catch (error) {
     console.log("error in getUserProfile = ", error);
