@@ -287,3 +287,40 @@ export const deleteCourseComment = async (
     next(error);
   }
 };
+
+export const updateCommentText = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const authReq = req as any;
+    const { id: userId } = authReq.user;
+    const { commentId , text } = req.body;
+
+    const existingComment = await prisma.courseComment.findFirst({
+      where: { id: String(commentId) },
+    });
+
+    if (!existingComment) {
+      return next(customError("comment not found", 404));
+    }
+
+    if(existingComment.userId !== String(userId)){
+      return next(customError("you aren`t creator of this comment", 400));
+    }
+
+    const updatedComment = await prisma.courseComment.update({
+      where : {id : String(commentId)},
+      data : {text}
+    })
+
+    res.json({
+      message: "comment updated successfully",
+      data: updatedComment,
+    });
+  } catch (error) {
+    console.log("error in updateCommentText = ", error);
+    next(error);
+  }
+};
