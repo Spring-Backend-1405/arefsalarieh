@@ -94,8 +94,6 @@ export const confirmCourseComment = async (
   next: NextFunction,
 ) => {
   try {
-    const authReq = req as any;
-    const { id: userId } = authReq.user;
     const { commentId } = req.params;
 
     const existingComment = await prisma.courseComment.findFirst({
@@ -121,6 +119,41 @@ export const confirmCourseComment = async (
     });
   } catch (error) {
     console.log("error in confirmCourseComment = ", error);
+    next(error);
+  }
+};
+
+export const rejectCourseComment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { commentId } = req.params;
+
+    const existingComment = await prisma.courseComment.findFirst({
+      where: { id: String(commentId) },
+    });
+
+    if (!existingComment) {
+      return next(customError("comment not found", 404));
+    }
+
+    if (existingComment.isReject) {
+      return next(customError("you already reject this comment", 400));
+    }
+
+    const rejectedComment = await prisma.courseComment.update({
+      where: { id: existingComment.id },
+      data: { isConfirm: false, isReject: true },
+    });
+
+    res.json({
+      message: "cmment reject successfully",
+      data: rejectedComment,
+    });
+  } catch (error) {
+    console.log("error in rejectCourseComment = ", error);
     next(error);
   }
 };
