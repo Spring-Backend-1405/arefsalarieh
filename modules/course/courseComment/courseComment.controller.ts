@@ -26,7 +26,7 @@ export const addCourseComment = async (
       });
 
       if (!existingComment) {
-        return next(customError("comment with this parentId not found", 404));
+        return next(customError(" this parentId not found", 404));
       }
     }
 
@@ -73,6 +73,7 @@ export const getcourseComments = async (
         parentId: null,
         isConfirm: true,
         isReject: false,
+        isDelete: false,
       },
     });
 
@@ -98,37 +99,8 @@ export const getCommentReplies = async (
       where: { id: String(commentId), isConfirm: true, isReject: false },
       include: {
         replies: {
-          where: { isConfirm: true, isReject: false },
+          where: { isConfirm: true, isReject: false, isDelete: false },
         },
-      },
-    });
-
-    if (!existingComments) {
-      return next(customError("comment not found", 404));
-    }
-
-    res.json({
-      message: true,
-      data: existingComments,
-    });
-  } catch (error) {
-    console.log("error in getCommentReplies = ", error);
-    next(error);
-  }
-};
-
-export const getCommentRepliesWithPermission = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const { commentId } = req.params;
-
-    const existingComments = await prisma.courseComment.findFirst({
-      where: { id: String(commentId) },
-      include: {
-        replies: true,
       },
     });
 
@@ -171,7 +143,36 @@ export const getcourseCommentsWithPermission = async (
       data: existingComment,
     });
   } catch (error) {
-    console.log("error in getcourseComments = ", error);
+    console.log("error in getcourseCommentsWithPermission = ", error);
+    next(error);
+  }
+};
+
+export const getCommentRepliesWithPermission = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { commentId } = req.params;
+
+    const existingComments = await prisma.courseComment.findFirst({
+      where: { id: String(commentId) },
+      include: {
+        replies: true,
+      },
+    });
+
+    if (!existingComments) {
+      return next(customError("comment not found", 404));
+    }
+
+    res.json({
+      message: true,
+      data: existingComments,
+    });
+  } catch (error) {
+    console.log("error in getCommentRepliesWithPermission = ", error);
     next(error);
   }
 };
@@ -242,6 +243,47 @@ export const rejectCourseComment = async (
     });
   } catch (error) {
     console.log("error in rejectCourseComment = ", error);
+    next(error);
+  }
+};
+
+export const deleteCourseComment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const authReq = req as any;
+    const { id: userId } = authReq.user;
+    const { commentId } = req.params;
+
+    const existingComment = await prisma.courseComment.findFirst({
+      where: { id: String(commentId) },
+    });
+
+    if (!existingComment) {
+      return next(customError("comment not found", 404));
+    }
+
+    if(existingComment.userId !== String(userId)){
+      return next(customError("you aren`t creator of this comment", 400));
+    }
+
+    if(existingComment.isDelete){
+      return next(customError("you already delete this comment", 400));
+    }
+
+    const deletedComment = await prisma.courseComment.update({
+      where : {id : String(commentId)},
+      data : {isDelete : true}
+    })
+
+    res.json({
+      message: "comment deleted successfully",
+      data: deletedComment,
+    });
+  } catch (error) {
+    console.log("error in deleteCourseComment = ", error);
     next(error);
   }
 };

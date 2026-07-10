@@ -7,7 +7,7 @@ import {
 import { validateMiddleware } from "../../../middlewares/validateMiddleware";
 
 import { Actions, Resources } from "../../../constants/permissions";
-import { addCourseComment, confirmCourseComment, getCommentReplies, getCommentRepliesWithPermission, getcourseComments, getcourseCommentsWithPermission, rejectCourseComment } from "./courseComment.controller";
+import { addCourseComment, confirmCourseComment, deleteCourseComment, getCommentReplies, getCommentRepliesWithPermission, getcourseComments, getcourseCommentsWithPermission, rejectCourseComment } from "./courseComment.controller";
 
 const courseComment = express.Router();
 
@@ -29,7 +29,11 @@ courseComment.get(
   getCommentReplies,
 );
 
-
+courseComment.delete(
+  "/delete-course-comment/:commentId",
+  checkAuthentication,
+  deleteCourseComment,
+);
 
 courseComment.get(
   "/get-course-comment-with-permission/:courseId",

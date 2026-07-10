@@ -114,6 +114,7 @@ model CourseComment {
   text      String
   isConfirm Boolean @default(false)
   isReject  Boolean @default(false)
+  isDelete  Boolean @default(false)
 
   courseId String
   course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
