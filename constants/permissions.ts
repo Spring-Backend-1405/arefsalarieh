@@ -22,6 +22,7 @@ export const Actions = {
   ENROLL: 'enroll',
   FAVORITE: 'favorite',
   CONFIRM : 'confirm',
+  REJECT : 'reject',
   GENERAL : 'general'
 } as const;
 
