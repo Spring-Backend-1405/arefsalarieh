@@ -31,15 +31,15 @@ export const addCourseComment = async (
     }
 
     const newComment = await prisma.courseComment.create({
-        data : {
-            userId : String(userId),
-            courseId : String(courseId),
-            parentId : parentId ? String(parentId) : null,
-            text,
-            isConfirm : false,
-            isReject : false
-        }
-    })
+      data: {
+        userId: String(userId),
+        courseId: String(courseId),
+        parentId: parentId ? String(parentId) : null,
+        text,
+        isConfirm: false,
+        isReject: false,
+      },
+    });
 
     res.json({
       message: "cmment added successfully",
@@ -61,21 +61,22 @@ export const getcourseComments = async (
 
     const existingCourse = await prisma.course.findFirst({
       where: { id: String(courseId) },
-      include : {comments : {include : {replies : true}}}
+      include: { comments: { include: { replies: true } } },
     });
 
     if (!existingCourse) {
       return next(customError("course not found", 404));
     }
 
-    const parentComments = existingCourse.comments.filter(item => !item.parentId)
+    const parentComments = existingCourse.comments.filter(
+      (item) => !item.parentId,
+    );
 
-    const justComments = parentComments.map(item => {
-      const   {replies , ...other} = item
-      const repliesCount = replies && replies.length
-      return {...other , repliesCount}
-    })
-
+    const justComments = parentComments.map((item) => {
+      const { replies, ...other } = item;
+      const repliesCount = replies && replies.length;
+      return { ...other, repliesCount };
+    });
 
     res.json({
       message: true,
@@ -83,6 +84,43 @@ export const getcourseComments = async (
     });
   } catch (error) {
     console.log("error in getcourseComments = ", error);
+    next(error);
+  }
+};
+
+export const confirmCourseComment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const authReq = req as any;
+    const { id: userId } = authReq.user;
+    const { commentId } = req.params;
+
+    const existingComment = await prisma.courseComment.findFirst({
+      where: { id: String(commentId) },
+    });
+
+    if (!existingComment) {
+      return next(customError("comment not found", 404));
+    }
+
+    if (existingComment.isConfirm) {
+      return next(customError("you already confirm this comment", 400));
+    }
+
+    const confirmedComment = await prisma.courseComment.update({
+      where: { id: existingComment.id },
+      data: { isConfirm: true, isReject: false },
+    });
+
+    res.json({
+      message: "cmment confirm successfully",
+      data: confirmedComment,
+    });
+  } catch (error) {
+    console.log("error in confirmCourseComment = ", error);
     next(error);
   }
 };
