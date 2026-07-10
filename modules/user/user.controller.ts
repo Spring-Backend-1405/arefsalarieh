@@ -118,6 +118,55 @@ export const updateProfile = async (
       profileUpdateData,
     );
 
+    if (updatedUser.profile) {
+      const { phone, country, state, city, address, bio } = updatedUser.profile;
+      const isProfileComplete = phone && country && state && city && address && bio;
+
+      if (isProfileComplete) {
+        const enrollPermission = await prisma.permission.findFirst({
+          where: {
+            resource: "course",
+            action: "enroll",
+          },
+        });
+
+        if (enrollPermission) {
+          const existingUserPermission = await prisma.userPermission.findUnique({
+            where: {
+              userId_permissionId: {
+                userId: id,
+                permissionId: enrollPermission.id,
+              },
+            },
+          });
+
+          if (existingUserPermission) {
+            if (existingUserPermission.type !== "ALLOW") {
+              await prisma.userPermission.update({
+                where: {
+                  userId_permissionId: {
+                    userId: id,
+                    permissionId: enrollPermission.id,
+                  },
+                },
+                data: { type: "ALLOW" },
+              });
+            }
+          } else {
+            await prisma.userPermission.create({
+              data: {
+                userId: id,
+                permissionId: enrollPermission.id,
+                type: "ALLOW",
+              },
+            });
+          }
+        } else {
+          console.warn("Permission 'course:enroll' not found in database.");
+        }
+      }
+    }
+
     res.status(201).json({
       status: true,
       data: updatedUser,
