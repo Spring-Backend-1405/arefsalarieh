@@ -21,7 +21,7 @@ export const Actions = {
   LIKE: 'like',
   ENROLL: 'enroll',
   FAVORITE: 'favorite',
-  CONFIRMWITHDRAW : 'confirm-withdraw',
+  CONFIRM : 'confirm',
   GENERAL : 'general'
 } as const;
 

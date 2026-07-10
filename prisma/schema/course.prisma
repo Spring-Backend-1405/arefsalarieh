@@ -46,6 +46,7 @@ model Course {
   coursePrices        CoursePrice[]
   courseLikes         CourseLike[]
   courseDisLikes      CourseDisLike[]
+  comments            CourseComment[]
 }
 
 model CourseDetail {
@@ -106,4 +107,23 @@ model CourseDisLike {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([courseId, userId])
+}
+
+model CourseComment {
+  id        String   @id @default(uuid())
+  text      String
+  isConfirm Boolean @default(false)
+  isReject  Boolean @default(false)
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  parentId String?
+  parent   CourseComment?  @relation("CommentParent", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  CourseComment[] @relation("CommentParent")
+
+  createdAt DateTime @default(now())
 }
