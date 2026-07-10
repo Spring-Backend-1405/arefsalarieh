@@ -7,7 +7,7 @@ import {
 import { validateMiddleware } from "../../../middlewares/validateMiddleware";
 
 import { Actions, Resources } from "../../../constants/permissions";
-import { addCourseComment, confirmCourseComment, deleteCourseComment, getCommentReplies, getCommentRepliesWithPermission, getcourseComments, getcourseCommentsWithPermission, rejectCourseComment, updateCommentText } from "./courseComment.controller";
+import { addCourseComment, confirmCourseCommentWithPermission, deleteCourseComment, getCommentReplies, getCommentRepliesWithPermission, getcourseComments, getcourseCommentsWithPermission, rejectCourseCommentWithPermission, updateCommentText } from "./courseComment.controller";
 
 const courseComment = express.Router();
 
@@ -55,17 +55,17 @@ courseComment.get(
 );
 
 courseComment.put(
-  "/confirm-course-comment/:commentId",
+  "/confirm-course-comment-with-permission/:commentId",
   checkAuthentication,
   requirePermission(Resources.COMMENT , Actions.CONFIRM),
-  confirmCourseComment,
+  confirmCourseCommentWithPermission,
 );
 
 courseComment.put(
-  "/reject-course-comment/:commentId",
+  "/reject-course-comment-with-permission/:commentId",
   checkAuthentication,
   requirePermission(Resources.COMMENT , Actions.REJECT),
-  rejectCourseComment,
+  rejectCourseCommentWithPermission,
 );
 
 export default courseComment;

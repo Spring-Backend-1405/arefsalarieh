@@ -177,7 +177,7 @@ export const getCommentRepliesWithPermission = async (
   }
 };
 
-export const confirmCourseComment = async (
+export const confirmCourseCommentWithPermission = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -212,7 +212,7 @@ export const confirmCourseComment = async (
   }
 };
 
-export const rejectCourseComment = async (
+export const rejectCourseCommentWithPermission = async (
   req: Request,
   res: Response,
   next: NextFunction,
