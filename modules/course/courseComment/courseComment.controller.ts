@@ -50,3 +50,39 @@ export const addCourseComment = async (
     next(error);
   }
 };
+
+export const getcourseComments = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { courseId } = req.params;
+
+    const existingCourse = await prisma.course.findFirst({
+      where: { id: String(courseId) },
+      include : {comments : {include : {replies : true}}}
+    });
+
+    if (!existingCourse) {
+      return next(customError("course not found", 404));
+    }
+
+    const parentComments = existingCourse.comments.filter(item => !item.parentId)
+
+    const justComments = parentComments.map(item => {
+      const   {replies , ...other} = item
+      const repliesCount = replies && replies.length
+      return {...other , repliesCount}
+    })
+
+
+    res.json({
+      message: true,
+      data: justComments,
+    });
+  } catch (error) {
+    console.log("error in getcourseComments = ", error);
+    next(error);
+  }
+};
