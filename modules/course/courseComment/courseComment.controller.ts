@@ -68,7 +68,12 @@ export const getcourseComments = async (
     }
 
     const existingComment = await prisma.courseComment.findMany({
-      where: { courseId: String(courseId), parentId: null, isConfirm: true },
+      where: {
+        courseId: String(courseId),
+        parentId: null,
+        isConfirm: true,
+        isReject: false,
+      },
     });
 
     res.json({
@@ -90,8 +95,41 @@ export const getCommentReplies = async (
     const { commentId } = req.params;
 
     const existingComments = await prisma.courseComment.findFirst({
+      where: { id: String(commentId), isConfirm: true, isReject: false },
+      include: {
+        replies: {
+          where: { isConfirm: true, isReject: false },
+        },
+      },
+    });
+
+    if (!existingComments) {
+      return next(customError("comment not found", 404));
+    }
+
+    res.json({
+      message: true,
+      data: existingComments,
+    });
+  } catch (error) {
+    console.log("error in getCommentReplies = ", error);
+    next(error);
+  }
+};
+
+export const getCommentRepliesWithPermission = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { commentId } = req.params;
+
+    const existingComments = await prisma.courseComment.findFirst({
       where: { id: String(commentId) },
-      include: { replies: true },
+      include: {
+        replies: true,
+      },
     });
 
     if (!existingComments) {
