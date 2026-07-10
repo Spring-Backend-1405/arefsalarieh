@@ -88,6 +88,33 @@ export const getcourseComments = async (
   }
 };
 
+export const getCommentReplies = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { commentId } = req.params;
+
+    const existingComments = await prisma.courseComment.findFirst({
+      where: { id: String(commentId) },
+      include: { replies: true },
+    });
+
+    if (!existingComments) {
+      return next(customError("comment not found", 404));
+    }
+
+    res.json({
+      message: true,
+      data: existingComments,
+    });
+  } catch (error) {
+    console.log("error in getCommentReplies = ", error);
+    next(error);
+  }
+};
+
 export const confirmCourseComment = async (
   req: Request,
   res: Response,
