@@ -205,17 +205,20 @@ export const handleLogin = async (
     const normalizedEmail = email.toLowerCase().trim();
 
     const existingUser = await prisma.user.findFirst({
-      where : {
-        email : normalizedEmail
+      where: { email: normalizedEmail },
+      include: {
+        roles: {
+          include: {
+            role: {
+              include: { rolePermissions: { include: { permission: true } } },
+            },
+          },
+        },
+        userPermission: {
+          include: { permission: true },
+        },
       },
-      include : {
-        roles : {
-          include : {
-            role : true
-          }
-        }
-      }
-    })
+    });
 
     if (!existingUser) {
       return next(customError("User doesn't exist", 400));
@@ -235,17 +238,12 @@ export const handleLogin = async (
 
     if (existingUser.twoFactorEnabled) {
       try {
-        let loginVerificationToken: string;
-        loginVerificationToken = await sendVerificationEmailInLogin(normalizedEmail);
-         await prisma.user.update({
-          where: {
-            email: normalizedEmail,
-          },
+        const loginVerificationToken = await sendVerificationEmailInLogin(normalizedEmail);
+        await prisma.user.update({
+          where: { email: normalizedEmail },
           data: {
             twoFactorSecret: loginVerificationToken,
-            twoFactorSecretExpiresAt: new Date(
-              Date.now() + 24 * 60 * 60 * 1000,
-            ),
+            twoFactorSecretExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
           },
         });
         return res.status(201).json({
@@ -262,7 +260,32 @@ export const handleLogin = async (
       return sedLinkForQrCode(existingUser, res, next);
     }
 
-    const userForRespons = userForResponse(existingUser);
+    const rolesWithPermissions = existingUser.roles.map((userRole) => ({
+      id: userRole.role.id,
+      name: userRole.role.name,
+      permissions: userRole.role.rolePermissions.map(
+        (rp) => `${rp.permission.resource}:${rp.permission.action}`
+      ),
+    }));
+
+    const exceptionPermissions = existingUser.userPermission.map((up) => ({
+      resource: up.permission.resource,
+      action: up.permission.action,
+      type: up.type, 
+    }));
+
+    const userForRespons = {
+      id: existingUser.id,
+      name: existingUser.name,
+      email: existingUser.email,
+      gender: existingUser.gender,
+      isEmailVerified: existingUser.isEmailVerified,
+      twoFactorEnabled: existingUser.twoFactorEnabled,
+      qrCodeEnabled: existingUser.qrCodeEnabled,
+      createdAt: existingUser.createdAt,
+      roles: rolesWithPermissions,
+      userExceptionPermissions: exceptionPermissions,
+    };
 
     const accessToken = await createTokenForResponse(existingUser, res, next);
 
@@ -862,11 +885,10 @@ export async function qrCodeHandler(
       },
     });
   } catch (error) {
-  console.log("error in qrCodeHandler = ", error);
+    console.log("error in qrCodeHandler = ", error);
     next(error);
   }
 }
-
 
 export async function deActiveQRcode(
   req: Request,
