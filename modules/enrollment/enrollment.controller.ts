@@ -105,3 +105,94 @@ export const reserveCourse = async (
   }
 };
 
+
+export const getAllReserves = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const {
+      createdAtStart,
+      createdAtEnd,
+      expiresAtStart,
+      expiresAtEnd,
+      courseId,
+      userId,
+      courseName,
+      userName,
+    } = req.query;
+
+    const where: any = {};
+
+    if (createdAtStart || createdAtEnd) {
+      where.createdAt = {};
+      if (createdAtStart) {
+        where.createdAt.gte = new Date(createdAtStart as string);
+      }
+      if (createdAtEnd) {
+        where.createdAt.lte = new Date(createdAtEnd as string);
+      }
+    }
+
+    if (expiresAtStart || expiresAtEnd) {
+      where.expiresAt = {};
+      if (expiresAtStart) {
+        where.expiresAt.gte = new Date(expiresAtStart as string);
+      }
+      if (expiresAtEnd) {
+        where.expiresAt.lte = new Date(expiresAtEnd as string);
+      }
+    }
+
+    if (courseId) {
+      where.courseId = String(courseId);
+    }
+
+    if (userId) {
+      where.userId = String(userId);
+    }
+
+    if (courseName) {
+      where.course = {
+        title: {
+          contains: String(courseName),
+        },
+      };
+    }
+
+    if (userName) {
+      where.user = {
+        name: {
+          contains: String(userName),
+        },
+      };
+    }
+
+    const allReserves = await prisma.courseReserves.findMany({
+      where,
+      include: {
+        course: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            profile: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    res.json({
+      message: true,
+      data: allReserves,
+    });
+  } catch (error) {
+    console.log("error in getAllReserves = ", error);
+    next(error);
+  }
+};
