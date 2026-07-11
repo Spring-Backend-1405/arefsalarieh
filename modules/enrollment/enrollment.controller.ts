@@ -233,9 +233,6 @@ export const confirmCourseReserve = async (
     if (existingReserve.isConfirm) {
       return next(customError("This reserve already confirmed", 400));
     }
-    if (existingReserve.isReject) {
-      return next(customError("This reserve has been rejected", 400));
-    }
     if (existingReserve.expiresAt && existingReserve.expiresAt < new Date()) {
       return next(customError("Reserve has expired", 400));
     }
@@ -247,13 +244,12 @@ export const confirmCourseReserve = async (
       const updatedReserve = await tx.courseReserves.updateMany({
         where: {
           id: String(reserveId),
-          isConfirm: false,
-          isReject: false,
           isDelete: false,
           expiresAt: { gt: new Date() },
         },
         data: {
           isConfirm: true,
+          isReject: false,
           expiresAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
         },
       });
@@ -312,6 +308,82 @@ export const confirmCourseReserve = async (
     }
 
     console.error("error in confirmCourseReserve = ", error);
+    next(error);
+  }
+};
+
+
+export const rejectCourseReserve = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { reserveId } = req.params;
+
+    const existingReserve = await prisma.courseReserves.findFirst({
+      where: { id: String(reserveId) },
+      include: {
+        course: {
+          include: { detail: true },
+        },
+      },
+    });
+
+    if (!existingReserve) {
+      return next(customError("Reserve not found", 404));
+    }
+
+    if (existingReserve.isDelete) {
+      return next(customError("This reservation has been deleted", 400));
+    }
+    if (existingReserve.isReject) {
+      return next(customError("This reserve already rejected", 400));
+    }
+    if (existingReserve.expiresAt && existingReserve.expiresAt < new Date()) {
+      return next(customError("Reserve has expired", 400));
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      const updatedReserve = await tx.courseReserves.updateMany({
+        where: {
+          id: String(reserveId),
+          isDelete: false,
+          expiresAt: { gt: new Date() },
+        },
+        data: {
+          isReject: true,
+          isConfirm: false,
+          expiresAt : new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+        },
+      });
+
+      if (updatedReserve.count === 0) {
+        throw new Error("RESERVE_ALREADY_PROCESSED");
+      }
+
+      const rejectedReserve = await tx.courseReserves.findFirst({
+        where: { id: String(reserveId) },
+      });
+
+      return rejectedReserve;
+    });
+
+    res.json({
+      message: "Reserve rejected successfully",
+      data: result,
+    });
+  } catch (error: any) {
+    if (error.message === "RESERVE_ALREADY_PROCESSED") {
+      return next(
+        customError(
+          "Reserve cannot be rejected (maybe already confirmed, rejected, deleted, or expired)",
+          400,
+        ),
+      );
+    }
+
+    console.error("error in rejectCourseReserve = ", error);
     next(error);
   }
 };
