@@ -122,6 +122,9 @@ export const getAllReserves = async (
       userId,
       courseName,
       userName,
+      isConfirm,
+      isReject,
+      isDelete,
     } = req.query;
 
     const where: any = {};
@@ -158,6 +161,29 @@ export const getAllReserves = async (
       where.user = {
         name: { contains: String(userName) },
       };
+    }
+
+    const toBoolean = (value: any): boolean | undefined => {
+      if (typeof value === "string") {
+        const lower = value.toLowerCase();
+        if (lower === "true" || lower === "1") return true;
+        if (lower === "false" || lower === "0") return false;
+      }
+      return undefined;
+    };
+
+    const confirmFilter = toBoolean(isConfirm);
+    const rejectFilter = toBoolean(isReject);
+    const deleteFilter = toBoolean(isDelete);
+
+    if (confirmFilter !== undefined) {
+      where.isConfirm = confirmFilter;
+    }
+    if (rejectFilter !== undefined) {
+      where.isReject = rejectFilter;
+    }
+    if (deleteFilter !== undefined) {
+      where.isDelete = deleteFilter;
     }
 
     const { skip, limit } = handlePagination(req);
@@ -312,7 +338,6 @@ export const confirmCourseReserve = async (
   }
 };
 
-
 export const rejectCourseReserve = async (
   req: Request,
   res: Response,
@@ -371,7 +396,7 @@ export const rejectCourseReserve = async (
         data: {
           isReject: true,
           isConfirm: false,
-          expiresAt: null, 
+          expiresAt: null,
         },
       });
 
@@ -387,7 +412,8 @@ export const rejectCourseReserve = async (
     });
 
     res.json({
-      message: "Reserve rejected successfully. User can make a new reservation if capacity is available.",
+      message:
+        "Reserve rejected successfully. User can make a new reservation if capacity is available.",
       data: result,
     });
   } catch (error: any) {
