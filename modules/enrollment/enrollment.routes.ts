@@ -6,7 +6,7 @@ import {
 } from "../../middlewares/authMiddleware";
 
 import { Actions, Resources } from "../../constants/permissions";
-import { getAllReserves, reserveCourse } from "./enrollment.controller";
+import { confirmCourseReserve, getAllReserves, reserveCourse } from "./enrollment.controller";
 
 const enrollmentRouter = express.Router();
 
@@ -23,6 +23,13 @@ enrollmentRouter.get(
   checkAuthentication,
   requirePermission(Resources.RESERVE, Actions.READ),
   getAllReserves,
+);
+
+enrollmentRouter.post(
+  "/confirm-course-reserve/:reserveId",
+  checkAuthentication,
+  requirePermission(Resources.RESERVE, Actions.CONFIRM),
+  confirmCourseReserve,
 );
 
 
