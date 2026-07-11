@@ -430,3 +430,114 @@ export const rejectCourseReserve = async (
     next(error);
   }
 };
+
+
+export const getMyCourseReserves = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const authReq = req as any;
+    const id = authReq?.user?.id || "";
+
+    const {
+      createdAtStart,
+      createdAtEnd,
+      expiresAtStart,
+      expiresAtEnd,
+      courseId,
+      courseName,
+      isConfirm,
+      isReject,
+      isDelete,
+    } = req.query;
+
+    const where: any = {
+      userId: String(id), 
+    };
+
+    if (createdAtStart || createdAtEnd) {
+      where.createdAt = {};
+      if (createdAtStart) where.createdAt.gte = new Date(createdAtStart as string);
+      if (createdAtEnd) where.createdAt.lte = new Date(createdAtEnd as string);
+    }
+
+    if (expiresAtStart || expiresAtEnd) {
+      where.expiresAt = {};
+      if (expiresAtStart) where.expiresAt.gte = new Date(expiresAtStart as string);
+      if (expiresAtEnd) where.expiresAt.lte = new Date(expiresAtEnd as string);
+    }
+
+    if (courseId) {
+      where.courseId = String(courseId);
+    }
+
+    if (courseName) {
+      where.course = {
+        title: { contains: String(courseName) },
+      };
+    }
+
+    const toBoolean = (value: any): boolean | undefined => {
+      if (typeof value === "string") {
+        const lower = value.toLowerCase();
+        if (lower === "true" || lower === "1") return true;
+        if (lower === "false" || lower === "0") return false;
+      }
+      return undefined;
+    };
+
+    const confirmFilter = toBoolean(isConfirm);
+    const rejectFilter = toBoolean(isReject);
+    const deleteFilter = toBoolean(isDelete);
+
+    if (confirmFilter !== undefined) {
+      where.isConfirm = confirmFilter;
+    }
+    if (rejectFilter !== undefined) {
+      where.isReject = rejectFilter;
+    }
+    if (deleteFilter !== undefined) {
+      where.isDelete = deleteFilter;
+    }
+
+    const { skip, limit } = handlePagination(req);
+
+    const totalCount = await prisma.courseReserves.count({ where });
+
+    const myReserves = await prisma.courseReserves.findMany({
+      where,
+      include: {
+        course: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      skip,
+      take: limit,
+    });
+
+    const totalPages = Math.ceil(totalCount / limit);
+
+    res.json({
+      status: true,
+      data: {
+        list: myReserves,
+        pagination: {
+          totalCount,
+          totalPages,
+          currentPage: Math.floor(skip / limit) + 1,
+          limit,
+          hasNextPage: skip + limit < totalCount,
+          hasPreviousPage: skip > 0,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("error in getMyCourseReserves = ", error);
+    next(error);
+  }
+};
+
+
