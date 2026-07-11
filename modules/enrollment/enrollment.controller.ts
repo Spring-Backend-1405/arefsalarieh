@@ -327,6 +327,7 @@ export const rejectCourseReserve = async (
         course: {
           include: { detail: true },
         },
+        user: true,
       },
     });
 
@@ -344,17 +345,33 @@ export const rejectCourseReserve = async (
       return next(customError("Reserve has expired", 400));
     }
 
+    const existingEnroll = await prisma.courseEnroll.findFirst({
+      where: {
+        userId: existingReserve.userId,
+        courseId: existingReserve.courseId,
+      },
+    });
+
+    if (existingEnroll) {
+      return next(
+        customError(
+          "User has already enrolled in this course. Cannot reject the reserve. Please process refund if needed.",
+          400,
+        ),
+      );
+    }
+
     const result = await prisma.$transaction(async (tx) => {
       const updatedReserve = await tx.courseReserves.updateMany({
         where: {
           id: String(reserveId),
           isDelete: false,
-          expiresAt: { gt: new Date() },
+          isReject: false,
         },
         data: {
           isReject: true,
           isConfirm: false,
-          expiresAt : new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+          expiresAt: null, 
         },
       });
 
@@ -370,14 +387,14 @@ export const rejectCourseReserve = async (
     });
 
     res.json({
-      message: "Reserve rejected successfully",
+      message: "Reserve rejected successfully. User can make a new reservation if capacity is available.",
       data: result,
     });
   } catch (error: any) {
     if (error.message === "RESERVE_ALREADY_PROCESSED") {
       return next(
         customError(
-          "Reserve cannot be rejected (maybe already confirmed, rejected, deleted, or expired)",
+          "Reserve cannot be rejected (maybe already rejected, deleted, or expired)",
           400,
         ),
       );
