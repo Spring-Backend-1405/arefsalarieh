@@ -431,7 +431,6 @@ export const rejectCourseReserve = async (
   }
 };
 
-
 export const getMyCourseReserves = async (
   req: Request,
   res: Response,
@@ -454,18 +453,20 @@ export const getMyCourseReserves = async (
     } = req.query;
 
     const where: any = {
-      userId: String(id), 
+      userId: String(id),
     };
 
     if (createdAtStart || createdAtEnd) {
       where.createdAt = {};
-      if (createdAtStart) where.createdAt.gte = new Date(createdAtStart as string);
+      if (createdAtStart)
+        where.createdAt.gte = new Date(createdAtStart as string);
       if (createdAtEnd) where.createdAt.lte = new Date(createdAtEnd as string);
     }
 
     if (expiresAtStart || expiresAtEnd) {
       where.expiresAt = {};
-      if (expiresAtStart) where.expiresAt.gte = new Date(expiresAtStart as string);
+      if (expiresAtStart)
+        where.expiresAt.gte = new Date(expiresAtStart as string);
       if (expiresAtEnd) where.expiresAt.lte = new Date(expiresAtEnd as string);
     }
 
@@ -540,4 +541,165 @@ export const getMyCourseReserves = async (
   }
 };
 
+export const finalizedEnrollment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const authReq = req as any;
+    const id = authReq?.user?.id || "";
+    const { reserveId } = req.params;
 
+    const existingReserve = await prisma.courseReserves.findFirst({
+      where: { id: String(reserveId) },
+      include: {
+        course: {
+          include: {
+            coursePrices: { where: { isActive: true } },
+            detail: true,
+          },
+        },
+        user: {
+          include: { wallet: true },
+        },
+      },
+    });
+
+    if (!existingReserve) {
+      return next(customError("Reserve not found", 404));
+    }
+
+    if (existingReserve.userId !== id) {
+      return next(customError("This reserve is not for you", 403));
+    }
+    if (existingReserve.isDelete) {
+      return next(customError("This reserve has been deleted", 400));
+    }
+    if (existingReserve.isReject) {
+      return next(customError("This reserve has been rejected", 400));
+    }
+    if (!existingReserve.isConfirm) {
+      return next(customError("This reserve has not been confirmed yet", 400));
+    }
+    if (existingReserve.expiresAt && existingReserve.expiresAt < new Date()) {
+      return next(customError("This reserve has expired", 400));
+    }
+
+    const existingEnroll = await prisma.courseEnroll.findFirst({
+      where: {
+        userId: id,
+        courseId: existingReserve.courseId,
+      },
+    });
+    if (existingEnroll) {
+      return next(customError("You are already enrolled in this course", 400));
+    }
+
+    const course = existingReserve.course;
+    const detail = course.detail;
+    const isFree = course.isFree;
+
+    if (!detail) {
+      return next(customError("Course detail is not available", 400));
+    }
+
+    let finalPrice = 0;
+    let price = 0;
+    let discount = 0;
+
+    if (!isFree) {
+      const activePrice = course.coursePrices[0];
+      if (!activePrice) {
+        return next(customError("Course price is not set", 400));
+      }
+      price = activePrice.price;
+      discount = activePrice.discountPrice || 0;
+      finalPrice = price - discount; 
+    }
+
+    if (!isFree) {
+      const wallet = existingReserve.user.wallet;
+      if (!wallet) {
+        return next(customError("You don't have a wallet. Please charge your account", 404));
+      }
+      if (wallet.balance < finalPrice) {
+        return next(customError(`Insufficient balance. Required: ${finalPrice}, Available: ${wallet.balance}`, 400));
+      }
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      const updatedDetail = await tx.courseDetail.updateMany({
+        where: {
+          courseId: course.id,
+          totalStudent: { lt: detail.capacity },
+        },
+        data: {
+          totalStudent: { increment: 1 },
+        },
+      });
+
+      if (updatedDetail.count === 0) {
+        throw new Error("CAPACITY_FULL");
+      }
+
+      let wallet = existingReserve.user.wallet;
+      if (!isFree && wallet) {
+        await tx.wallet.update({
+          where: { id: wallet.id },
+          data: { balance: { decrement: finalPrice } },
+        });
+      }
+
+      const invoice = await tx.courseInvoice.create({
+        data: {
+          invoiceNumber: `INV-${Date.now()}-${id.slice(0, 8)}`,
+          courseId: course.id,
+          userId: id,
+          amount: price,
+          discount: isFree ? 0 : discount,
+          finalAmount: isFree ? 0 : finalPrice,
+          status: isFree ? "PAID" : "PAID",
+          paymentDate: new Date(),
+          description: `Enrollment in course: ${course.title}${isFree ? " (Free)" : ""}`,
+        },
+      });
+
+      const enroll = await tx.courseEnroll.create({
+        data: {
+          courseId: course.id,
+          userId: id,
+          invoiceId: invoice.id,
+        },
+      });
+
+      await tx.courseReserves.update({
+        where: { id: existingReserve.id },
+        data: { isDelete: true },
+      });
+
+      return { enroll, invoice };
+    });
+
+    res.json({
+      status: true,
+      message: isFree
+        ? "Free course enrollment completed successfully"
+        : "Enrollment completed successfully. Payment deducted from wallet.",
+      data: result,
+    });
+  } catch (error: any) {
+    // مدیریت خطاهای اختصاصی
+    if (error.message === "CAPACITY_FULL") {
+      return next(
+        customError(
+          "Course capacity is full. Your payment has not been deducted.",
+          400,
+        ),
+      );
+    }
+
+    console.error("error in finalizedEnrollment = ", error);
+    next(error);
+  }
+};

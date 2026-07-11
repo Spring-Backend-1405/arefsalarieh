@@ -14,9 +14,9 @@ export const paymentRequestValidation = [
     .optional()
     .isString()
     .withMessage("Description must be a string"),
-  body("callback_url")
-    .isURL()
-    .withMessage("Callback URL must be a valid URL"),
+  // body("callback_url")
+  //   .isURL()
+  //   .withMessage("Callback URL must be a valid URL"),
 ];
 
 export const paymentResultValidation = [
