@@ -16,6 +16,7 @@ import courseRouter from "./modules/course/course.routes";
 import userRoleRouter from "./modules/rolePermission/userRole/userRole.routes";
 import courseLike from "./modules/course/courseLike/courseLike.routes";
 import courseComment from "./modules/course/courseComment/courseComment.routes";
+import enrollmentRouter from "./modules/enrollment/enrollment.routes";
 
 export const createApp = () => {
   const app = express();
@@ -42,7 +43,7 @@ export const createApp = () => {
   app.use("/api/course", courseRouter);
   app.use("/api/course-like", courseLike);
   app.use("/api/course-comment", courseComment);
-  
+  app.use("/api/enrollment", enrollmentRouter);  
 
   app.use(errorMiddleware);
 

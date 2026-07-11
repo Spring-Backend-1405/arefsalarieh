@@ -10,7 +10,8 @@ export const Resources = {
   USERPERMISSION : 'user-permission',
   WALLET : 'wallet',
   CATEGPRY : 'category',
-  COURSETYPE : 'course-type'
+  COURSETYPE : 'course-type',
+  RESERVE : 'reserve'
 } as const;
 
 export const Actions = {

@@ -47,6 +47,9 @@ model Course {
   courseLikes         CourseLike[]
   courseDisLikes      CourseDisLike[]
   comments            CourseComment[]
+  courseReserves      CourseReserves[]
+  courseEnrolls       CourseEnroll[]
+  courseInvoices      CourseInvoice[]
 }
 
 model CourseDetail {
@@ -110,7 +113,7 @@ model CourseDisLike {
 }
 
 model CourseComment {
-  id        String   @id @default(uuid())
+  id        String  @id @default(uuid())
   text      String
   isConfirm Boolean @default(false)
   isReject  Boolean @default(false)
@@ -127,4 +130,61 @@ model CourseComment {
   replies  CourseComment[] @relation("CommentParent")
 
   createdAt DateTime @default(now())
+}
+
+model CourseReserves {
+  id        String   @id @default(uuid())
+  courseId  String
+  userId    String
+  isConfirm Boolean  @default(false)
+  isReject  Boolean  @default(false)
+  isDelete  Boolean  @default(false)
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model CourseInvoice {
+  id            String        @id @default(uuid())
+  invoiceNumber String        @unique
+  courseId      String
+  userId        String
+  amount        Int
+  discount      Int?
+  finalAmount   Int
+  status        InvoiceStatus @default(PENDING)
+  paymentDate   DateTime?
+  refId         Int?
+  description   String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  course        Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseEnroll CourseEnroll?
+}
+
+model CourseEnroll {
+  id        String   @id @default(uuid())
+  courseId  String
+  userId    String
+  invoiceId String @unique
+  createdAt DateTime @default(now())
+
+  course  Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoice CourseInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, userId])
 }

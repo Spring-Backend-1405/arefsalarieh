@@ -44,6 +44,9 @@ model User {
   courseLikes    CourseLike[]
   courseDisLikes CourseDisLike[]
   comments       CourseComment[]
+  courseReserves CourseReserves[]
+  courseEnrolls  CourseEnroll[]
+  courseInvoices CourseInvoice[]
 }
 
 model Profile {

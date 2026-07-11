@@ -1,0 +1,107 @@
+import type { Request, Response, NextFunction } from "express";
+import { prisma } from "../../utils/prisma";
+import { customError } from "../../utils/customError";
+
+export const reserveCourse = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const authReq = req as any;
+    const id = authReq?.user?.id || "";
+
+    const { courseId } = req.params;
+
+    let existingCourse = await prisma.course.findFirst({
+      where: { id: String(courseId) },
+      include: { detail: true },
+    });
+
+    if (!existingCourse) {
+      return next(customError("course not found", 404));
+    }
+
+    if (!existingCourse.detail) {
+      return next(customError("Course detail is not available", 400));
+    }
+
+    const { totalStudent = 0, capacity = 0 } = existingCourse.detail;
+
+    if (totalStudent && capacity && totalStudent >= capacity) {
+      return next(customError("course capacity is full", 400));
+    }
+
+    const confirmedReserves = await prisma.courseReserves.count({
+      where: {
+        courseId: String(courseId),
+        isConfirm: true,
+        isDelete: false,
+      },
+    });
+
+    const totalConfirmed = (totalStudent || 0) + confirmedReserves;
+    if (totalConfirmed >= capacity) {
+      return next(
+        customError(
+          "Course capacity is full (including pending confirmations)",
+          400,
+        ),
+      );
+    }
+
+    const existingCourseReserve = await prisma.courseReserves.findFirst({
+      where: {
+        userId: String(id),
+        courseId: String(courseId),
+        isDelete: false,
+      },
+    });
+
+    if (
+      existingCourseReserve &&
+      existingCourseReserve.expiresAt &&
+      existingCourseReserve.expiresAt > new Date(Date.now())
+    ) {
+      return next(
+        customError(
+          `you already reserve this course and its valid till ${existingCourseReserve.expiresAt} \n
+        we are checking all reserve request\n
+        Please be patient. 
+        `,
+          400,
+        ),
+      );
+    }
+
+    if (
+      existingCourseReserve &&
+      !existingCourseReserve.isDelete &&
+      (existingCourseReserve.isConfirm || existingCourseReserve.isReject)
+    ) {
+      return next(
+        customError(
+          "Your previous request has been already processed (confirmed or rejected). Please contact support.",
+          400,
+        ),
+      );
+    }
+
+    const addReserve = await prisma.courseReserves.create({
+      data: {
+        userId: String(id),
+        courseId: String(courseId),
+        expiresAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    res.json({
+      message: "reserved successfully",
+      data: addReserve,
+    });
+  } catch (error) {
+    console.log("error in reserveCourse = ", error);
+    next(error);
+  }
+};
+

@@ -2,8 +2,8 @@ import { prisma } from "./prisma";
 
 const clearTable = async () => {
   try {
-    const result = await prisma.courseComment.delete({
-      where : {id : '356d18a2-aa88-4fde-bea0-4b38dc4167af'}
+    const result = await prisma.userPermission.deleteMany({
+      where : {userId : '2f08b9cf-cdf5-4056-a897-9828fdb74307'}
     })
     console.log(result);
   } catch (error) {
