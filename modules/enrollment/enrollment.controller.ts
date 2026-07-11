@@ -1,6 +1,8 @@
 import type { Request, Response, NextFunction } from "express";
 import { prisma } from "../../utils/prisma";
 import { customError } from "../../utils/customError";
+import { handlePagination } from "../../utils/searchHelper"; 
+
 
 export const reserveCourse = async (
   req: Request,
@@ -37,6 +39,7 @@ export const reserveCourse = async (
         courseId: String(courseId),
         isConfirm: true,
         isDelete: false,
+        expiresAt: { gt: new Date() },
       },
     });
 
@@ -44,7 +47,7 @@ export const reserveCourse = async (
     if (totalConfirmed >= capacity) {
       return next(
         customError(
-          "Course capacity is full (including pending confirmations)",
+          "Course capacity is full (including active confirmed reservations)",
           400,
         ),
       );
@@ -127,22 +130,14 @@ export const getAllReserves = async (
 
     if (createdAtStart || createdAtEnd) {
       where.createdAt = {};
-      if (createdAtStart) {
-        where.createdAt.gte = new Date(createdAtStart as string);
-      }
-      if (createdAtEnd) {
-        where.createdAt.lte = new Date(createdAtEnd as string);
-      }
+      if (createdAtStart) where.createdAt.gte = new Date(createdAtStart as string);
+      if (createdAtEnd) where.createdAt.lte = new Date(createdAtEnd as string);
     }
 
     if (expiresAtStart || expiresAtEnd) {
       where.expiresAt = {};
-      if (expiresAtStart) {
-        where.expiresAt.gte = new Date(expiresAtStart as string);
-      }
-      if (expiresAtEnd) {
-        where.expiresAt.lte = new Date(expiresAtEnd as string);
-      }
+      if (expiresAtStart) where.expiresAt.gte = new Date(expiresAtStart as string);
+      if (expiresAtEnd) where.expiresAt.lte = new Date(expiresAtEnd as string);
     }
 
     if (courseId) {
@@ -155,19 +150,19 @@ export const getAllReserves = async (
 
     if (courseName) {
       where.course = {
-        title: {
-          contains: String(courseName),
-        },
+        title: { contains: String(courseName) },
       };
     }
 
     if (userName) {
       where.user = {
-        name: {
-          contains: String(userName),
-        },
+        name: { contains: String(userName) },
       };
     }
+
+    const { skip, limit } = handlePagination(req);
+
+    const totalCount = await prisma.courseReserves.count({ where });
 
     const allReserves = await prisma.courseReserves.findMany({
       where,
@@ -185,11 +180,25 @@ export const getAllReserves = async (
       orderBy: {
         createdAt: "desc",
       },
+      skip,
+      take: limit,
     });
 
+    const totalPages = Math.ceil(totalCount / limit);
+
     res.json({
-      message: true,
-      data: allReserves,
+      status: true,
+      data: {
+        list: allReserves,
+        pagination: {
+          totalCount,
+          totalPages,
+          currentPage: Math.floor(skip / limit) + 1,
+          limit,
+          hasNextPage: skip + limit < totalCount,
+          hasPreviousPage: skip > 0,
+        },
+      },
     });
   } catch (error) {
     console.log("error in getAllReserves = ", error);
