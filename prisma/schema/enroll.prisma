@@ -1,0 +1,29 @@
+model CourseReserves {
+  id        String   @id @default(uuid())
+  courseId  String
+  userId    String
+  isConfirm Boolean  @default(false)
+  isReject  Boolean  @default(false)
+  isDelete  Boolean  @default(false)
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+}
+
+model CourseEnroll {
+  id        String   @id @default(uuid())
+  courseId  String
+  userId    String
+  invoiceId String @unique
+  createdAt DateTime @default(now())
+
+  course  Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoice CourseInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, userId])
+}
