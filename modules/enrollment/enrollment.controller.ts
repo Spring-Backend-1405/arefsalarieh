@@ -12,9 +12,13 @@ export const reserveCourse = async (
     const authReq = req as any;
     const id = authReq?.user?.id || "";
 
+    if (!id) {
+      return next(customError("Unauthorized", 401));
+    }
+
     const { courseId } = req.params;
 
-    let existingCourse = await prisma.course.findFirst({
+    const existingCourse = await prisma.course.findFirst({
       where: { id: String(courseId) },
       include: { detail: true },
     });
@@ -33,25 +37,6 @@ export const reserveCourse = async (
       return next(customError("course capacity is full", 400));
     }
 
-    const confirmedReserves = await prisma.courseReserves.count({
-      where: {
-        courseId: String(courseId),
-        isConfirm: true,
-        isDelete: false,
-        expiresAt: { gt: new Date() },
-      },
-    });
-
-    const totalConfirmed = (totalStudent || 0) + confirmedReserves;
-    if (totalConfirmed >= capacity) {
-      return next(
-        customError(
-          "Course capacity is full (including active confirmed reservations)",
-          400,
-        ),
-      );
-    }
-
     const existingCourseReserve = await prisma.courseReserves.findFirst({
       where: {
         userId: String(id),
@@ -60,48 +45,76 @@ export const reserveCourse = async (
       },
     });
 
-    if (
-      existingCourseReserve &&
-      existingCourseReserve.expiresAt &&
-      existingCourseReserve.expiresAt > new Date(Date.now())
-    ) {
-      return next(
-        customError(
-          `you already reserve this course and its valid till ${existingCourseReserve.expiresAt} \n
-        we are checking all reserve request\n
-        Please be patient. 
-        `,
-          400,
-        ),
-      );
+    if (existingCourseReserve) {
+      const isStillValid =
+        !!existingCourseReserve.expiresAt &&
+        existingCourseReserve.expiresAt > new Date();
+
+      if (existingCourseReserve.isConfirm && isStillValid) {
+        return next(
+          customError(
+            `you already have a confirmed reservation for this course, valid until ${existingCourseReserve.expiresAt}. Please complete the payment.`,
+            400,
+          ),
+        );
+      }
+
+      if (
+        !existingCourseReserve.isConfirm &&
+        !existingCourseReserve.isReject &&
+        isStillValid
+      ) {
+        return next(
+          customError(
+            `you already reserve this course and it's pending review, valid till ${existingCourseReserve.expiresAt}. We are checking all reserve requests, please be patient.`,
+            400,
+          ),
+        );
+      }
+
+      await prisma.courseReserves.update({
+        where: { id: existingCourseReserve.id },
+        data: { isDelete: true },
+      });
     }
 
-    if (
-      existingCourseReserve &&
-      !existingCourseReserve.isDelete &&
-      (existingCourseReserve.isConfirm || existingCourseReserve.isReject)
-    ) {
-      return next(
-        customError(
-          "Your previous request has been already processed (confirmed or rejected). Please contact support.",
-          400,
-        ),
-      );
-    }
+    const addReserve = await prisma.$transaction(async (tx) => {
+      const confirmedReserves = await tx.courseReserves.count({
+        where: {
+          courseId: String(courseId),
+          isConfirm: true,
+          isDelete: false,
+          expiresAt: { gt: new Date() },
+        },
+      });
 
-    const addReserve = await prisma.courseReserves.create({
-      data: {
-        userId: String(id),
-        courseId: String(courseId),
-        expiresAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-      },
+      const totalConfirmed = (totalStudent || 0) + confirmedReserves;
+      if (totalConfirmed >= capacity) {
+        throw new Error("CAPACITY_FULL");
+      }
+
+      return tx.courseReserves.create({
+        data: {
+          userId: String(id),
+          courseId: String(courseId),
+          expiresAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        },
+      });
     });
 
     res.json({
       message: "reserved successfully",
       data: addReserve,
     });
-  } catch (error) {
+  } catch (error: any) {
+    if (error.message === "CAPACITY_FULL") {
+      return next(
+        customError(
+          "Course capacity is full (including active confirmed reservations)",
+          400,
+        ),
+      );
+    }
     console.log("error in reserveCourse = ", error);
     next(error);
   }
@@ -266,6 +279,8 @@ export const confirmCourseReserve = async (
       return next(customError("Course detail is not available", 400));
     }
 
+    const { capacity } = existingReserve.course.detail;
+
     const result = await prisma.$transaction(async (tx) => {
       const updatedReserve = await tx.courseReserves.updateMany({
         where: {
@@ -284,10 +299,10 @@ export const confirmCourseReserve = async (
         throw new Error("RESERVE_ALREADY_PROCESSED");
       }
 
-      if (!existingReserve.course.detail) {
-        return next(customError("Course detail is not available", 400));
-      }
-      const { totalStudent = 0, capacity = 0 } = existingReserve.course.detail;
+      const freshDetail = await tx.courseDetail.findUnique({
+        where: { courseId: existingReserve.courseId },
+      });
+      const totalStudent = freshDetail?.totalStudent || 0;
 
       const activeConfirmedReserves = await tx.courseReserves.count({
         where: {
@@ -440,6 +455,10 @@ export const getMyCourseReserves = async (
     const authReq = req as any;
     const id = authReq?.user?.id || "";
 
+    if (!id) {
+      return next(customError("Unauthorized", 401));
+    }
+
     const {
       createdAtStart,
       createdAtEnd,
@@ -549,6 +568,11 @@ export const finalizedEnrollment = async (
   try {
     const authReq = req as any;
     const id = authReq?.user?.id || "";
+
+    if (!id) {
+      return next(customError("Unauthorized", 401));
+    }
+
     const { reserveId } = req.params;
 
     const existingReserve = await prisma.courseReserves.findFirst({
@@ -556,7 +580,10 @@ export const finalizedEnrollment = async (
       include: {
         course: {
           include: {
-            coursePrices: { where: { isActive: true } },
+            coursePrices: {
+              where: { isActive: true },
+              orderBy: { startAt: "desc" },
+            },
             detail: true,
           },
         },
@@ -615,16 +642,26 @@ export const finalizedEnrollment = async (
       }
       price = activePrice.price;
       discount = activePrice.discountPrice || 0;
-      finalPrice = price - discount; 
+      finalPrice = price - discount;
     }
 
     if (!isFree) {
       const wallet = existingReserve.user.wallet;
       if (!wallet) {
-        return next(customError("You don't have a wallet. Please charge your account", 404));
+        return next(
+          customError(
+            "You don't have a wallet. Please charge your account",
+            404,
+          ),
+        );
       }
       if (wallet.balance < finalPrice) {
-        return next(customError(`Insufficient balance. Required: ${finalPrice}, Available: ${wallet.balance}`, 400));
+        return next(
+          customError(
+            `Insufficient balance. Required: ${finalPrice}, Available: ${wallet.balance}`,
+            400,
+          ),
+        );
       }
     }
 
@@ -643,12 +680,20 @@ export const finalizedEnrollment = async (
         throw new Error("CAPACITY_FULL");
       }
 
-      let wallet = existingReserve.user.wallet;
-      if (!isFree && wallet) {
-        await tx.wallet.update({
-          where: { id: wallet.id },
+      const wallet = existingReserve.user.wallet;
+      if (!isFree) {
+        if (!wallet) {
+          throw new Error("NO_WALLET");
+        }
+
+        const walletUpdate = await tx.wallet.updateMany({
+          where: { id: wallet.id, balance: { gte: finalPrice } },
           data: { balance: { decrement: finalPrice } },
         });
+
+        if (walletUpdate.count === 0) {
+          throw new Error("INSUFFICIENT_BALANCE");
+        }
       }
 
       const invoice = await tx.courseInvoice.create({
@@ -659,7 +704,7 @@ export const finalizedEnrollment = async (
           amount: price,
           discount: isFree ? 0 : discount,
           finalAmount: isFree ? 0 : finalPrice,
-          status: isFree ? "PAID" : "PAID",
+          status: "PAID",
           paymentDate: new Date(),
           description: `Enrollment in course: ${course.title}${isFree ? " (Free)" : ""}`,
         },
@@ -689,7 +734,6 @@ export const finalizedEnrollment = async (
       data: result,
     });
   } catch (error: any) {
-    // مدیریت خطاهای اختصاصی
     if (error.message === "CAPACITY_FULL") {
       return next(
         customError(
@@ -698,8 +742,84 @@ export const finalizedEnrollment = async (
         ),
       );
     }
+    if (error.message === "INSUFFICIENT_BALANCE") {
+      return next(
+        customError(
+          "Insufficient balance (your balance may have changed). Your payment has not been deducted.",
+          400,
+        ),
+      );
+    }
+    if (error.message === "NO_WALLET") {
+      return next(
+        customError("You don't have a wallet. Please charge your account", 404),
+      );
+    }
 
     console.error("error in finalizedEnrollment = ", error);
+    next(error);
+  }
+};
+
+export const getMyEnrolledCourse = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const authReq = req as any;
+    const id = authReq?.user?.id || "";
+
+    if (!id) {
+      return next(customError("Unauthorized", 401));
+    }
+
+    const { courseName } = req.query;
+
+    const where: any = {
+      userId: String(id),
+    };
+
+    if (courseName) {
+      where.course = {
+        title: { contains: String(courseName) },
+      };
+    }
+
+    const { skip, limit } = handlePagination(req);
+
+    const totalCount = await prisma.courseEnroll.count({ where });
+
+    const myReserves = await prisma.courseEnroll.findMany({
+      where,
+      include: {
+        course: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      skip,
+      take: limit,
+    });
+
+    const totalPages = Math.ceil(totalCount / limit);
+
+    res.json({
+      status: true,
+      data: {
+        list: myReserves,
+        pagination: {
+          totalCount,
+          totalPages,
+          currentPage: Math.floor(skip / limit) + 1,
+          limit,
+          hasNextPage: skip + limit < totalCount,
+          hasPreviousPage: skip > 0,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("error in getMyEnrolledCourse = ", error);
     next(error);
   }
 };
