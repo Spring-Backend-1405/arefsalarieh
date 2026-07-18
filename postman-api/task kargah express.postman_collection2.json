@@ -1,0 +1,2783 @@
+{
+  "info": {
+    "_postman_id": "3a5f008a-8404-4a48-ba22-9cffb60d4e1b",
+    "name": "task kargah express",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "29487040"
+  },
+  "item": [
+    {
+      "name": "auth",
+      "item": [
+        {
+          "name": "register",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\" : \"kelaha8869@cadebek.com\",\r\n    \"password\" : \"123456\",\r\n    \"name\" : \"kelaha8869\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/auth/register",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "forget-password",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\" : \"kelaha8869@cadebek.com\",\r\n    \"route\" : \"http://localhost:3000/api/auth/reset-password\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseurl}}/auth/forgot-password",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "reset-password",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\" : \"kelaha8869@cadebek.com\",\r\n    \"token\" : \"67fefc3ff435d971b0249626340eddf006e96833a37687f573f3ca9316e4d98e\",\r\n    \"password\" : \"987654\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/auth/reset-password",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "reset-password"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "verify-email",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\" : \"kelaha8869@cadebek.com\",\r\n    \"code\" : \"541307\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/auth/verify-email",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "verify-email"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "send-verification-token-again",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\" : \"arefsalarieh@gmail.com\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/auth/send-verification-token-again",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "send-verification-token-again"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();\r",
+                  "\r",
+                  "pm.environment.set(\"token\", response.data.accessToken);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\" : \"arefsalarieh4@gmail.com\",\r\n    \"password\" : \"123456\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "google-step-one",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();\r",
+                  "\r",
+                  "pm.environment.set(\"token\", response.data.accessToken);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\" : \"arefsalarieh@gmail.com\",\r\n    \"password\" : \"123456\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/auth/google-step-one",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "google-step-one"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "login-step-two",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();\r",
+                  "\r",
+                  "pm.environment.set(\"token\", response.data.accessToken);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\" : \"kelaha8869@cadebek.com\",\r\n    \"password\" : \"123456\",\r\n    \"token\" : \"427776\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/auth/login-step-two",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "login-step-two"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "active-2fa(with token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();\r",
+                  "\r",
+                  "pm.environment.set(\"token\", response.data.accessToken);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"password\" : \"123456\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/auth/active-2fa",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "active-2fa"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "active-qrcode(with token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();\r",
+                  "\r",
+                  "pm.environment.set(\"token\", response.data.accessToken);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"password\" : \"987654\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/auth/active-qrcode",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "active-qrcode"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "deAactive-qrcode(with token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();\r",
+                  "\r",
+                  "pm.environment.set(\"token\", response.data.accessToken);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"password\" : \"987654\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/auth/deAactive-qrcode",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "deAactive-qrcode"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "confirm-qrcode(with token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();\r",
+                  "\r",
+                  "pm.environment.set(\"token\", response.data.accessToken);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n        \"email\" : \"kelaha8869@cadebek.com\",\r\n    \"password\" : \"987654\",\r\n    \"code\" : \"301356\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/auth/qrcode",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "qrcode"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "deAactive-2fa(with token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();\r",
+                  "\r",
+                  "pm.environment.set(\"token\", response.data.accessToken);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"password\" : \"123456\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/auth/deAactive-2fa",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "deAactive-2fa"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "refresh-token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/auth/refresh-token",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "refresh-token"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "user",
+      "item": [
+        {
+          "name": "get-profile",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseurl}}/user/profile",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "user",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete-user-image",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseurl}}/user/delete-user-image/0f7bd949-8b06-44ec-8c7d-463667449069",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "user",
+                "delete-user-image",
+                "0f7bd949-8b06-44ec-8c7d-463667449069"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "change-main-image",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseurl}}/user/change-main-image/2c3469c5-de58-499c-8427-9c172c7b75ff",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "user",
+                "change-main-image",
+                "2c3469c5-de58-499c-8427-9c172c7b75ff"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "all-users",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseurl}}/user/all-users?page=1&limit=5&name=aref",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "user",
+                "all-users"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                },
+                {
+                  "key": "name",
+                  "value": "aref"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update-profile",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"arefsalarieh4@gmail.com\",\r\n  \"name\" : \"arefsalarieh4\",\r\n  \"gender\": \"MALE\",\r\n  \"phone\": \"+1234567890\",\r\n  \"country\": \"United States\",\r\n  \"state\": \"California\",\r\n  \"city\": \"Los Angeles\",\r\n  \"address\": \"123 Main St\",\r\n  \"bio\": \"I am a passionate learner.\"\r\n}"
+            },
+            "url": {
+              "raw": "{{baseurl}}/user/update-profile",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "user",
+                "update-profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "upload-profile-images",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "files",
+                  "type": "file",
+                  "uuid": "007c2088-93a0-4a52-8d95-4762cc4f291e",
+                  "src": [
+                    "/H:/image/MaNzaRe/MOBI/3Jokes_Mobile%20(30).jpg",
+                    "/H:/image/MaNzaRe/MOBI/004_135.JPG",
+                    "/H:/image/MaNzaRe/MOBI/04.JPG"
+                  ]
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseurl}}/user/upload-profile-images",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "user",
+                "upload-profile-images"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "rolde-permission (super admin)",
+      "item": [
+        {
+          "name": "1-role",
+          "item": [
+            {
+              "name": "get all roules",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"email\": \"arefsalarieh30@gmail.com\",\r\n  \"gender\": \"MALE\",\r\n  \"phone\": \"+1234567890\",\r\n  \"country\": \"United States\",\r\n  \"state\": \"California\",\r\n  \"city\": \"Los Angeles\",\r\n  \"address\": \"123 Main St\",\r\n  \"avatar\": \"https://example.com/avatar.jpg\",\r\n  \"bio\": \"I am a passionate learner.\"\r\n}"
+                },
+                "url": {
+                  "raw": "{{baseurl}}/role/get-all-roules",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "role",
+                    "get-all-roules"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "2-permission",
+          "item": [
+            {
+              "name": "get all permission",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseurl}}/permission/get-all-permission",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "permission",
+                    "get-all-permission"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get-resources-and-actions",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseurl}}/permission/get-resources-and-actions",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "permission",
+                    "get-resources-and-actions"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "delete-permission",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseurl}}/permission/delete-permission/8a712bc6-e864-46fa-902c-2cef175ce80a",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "permission",
+                    "delete-permission",
+                    "8a712bc6-e864-46fa-902c-2cef175ce80a"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "add-new-permission",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"resource\" : \"reserve\",\r\n    \"action\" : \"read\",\r\n    \"description\" : \"read reserve\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseurl}}/permission/add-new-permission",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "permission",
+                    "add-new-permission"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "3-role-permission",
+          "item": [
+            {
+              "name": "delete-permission-from-role",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{json_web_token_0aj9}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"roleId\" : \"baa57b34-4505-4f85-82d1-8dff6548a83d\",\r\n    \"permissionId\" : \"99b57e31-cb5c-48e6-8673-eba3590f32e8\"\r\n}"
+                },
+                "url": {
+                  "raw": "{{baseurl}}/role-permission/delete-permission-from-role",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "role-permission",
+                    "delete-permission-from-role"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get-single-Permission-roles",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseurl}}/role-permission/get-single-Permission-roles/99b57e31-cb5c-48e6-8673-eba3590f32e8",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "role-permission",
+                    "get-single-Permission-roles",
+                    "99b57e31-cb5c-48e6-8673-eba3590f32e8"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get-all-roles-Permissions",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseurl}}/role-permission/get-all-role-Permission",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "role-permission",
+                    "get-all-role-Permission"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get-all-Permission-role",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseurl}}/role-permission/get-all-Permission-role",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "role-permission",
+                    "get-all-Permission-role"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "add-permission-to-role",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"roleId\" : \"72de311f-d94b-4307-ae2d-58bd1b56ee47\",\r\n    \"permissionId\" : \"1ec9d151-4518-4ab5-8a14-470c2e0a7c70\"\r\n}"
+                },
+                "url": {
+                  "raw": "{{baseurl}}/role-permission/add-permission-to-role",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "role-permission",
+                    "add-permission-to-role"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get-single-role-Permission",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseurl}}/role-permission/get-single-role-Permission/72de311f-d94b-4307-ae2d-58bd1b56ee47",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "role-permission",
+                    "get-single-role-Permission",
+                    "72de311f-d94b-4307-ae2d-58bd1b56ee47"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "4-user-permission-exeption",
+          "item": [
+            {
+              "name": "add-permission-to-user",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"userId\" : \"2f08b9cf-cdf5-4056-a897-9828fdb74307\",\r\n    \"permissionId\" : \"791429a0-62df-4d0f-8c91-900f8f16237a\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseurl}}/user-permission-exception/add-permission-to-user",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "user-permission-exception",
+                    "add-permission-to-user"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "deny-permission-to-user",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"userId\" : \"6d023c32-c1a3-45ce-8964-abd2e10f3f94\",\r\n    \"permissionId\" : \"68f456dc-ddb8-43e7-b740-c261029ddbd0\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseurl}}/user-permission-exception/deny-permission-to-user",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "user-permission-exception",
+                    "deny-permission-to-user"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "delete-permission-from-user",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"userId\" : \"2f08b9cf-cdf5-4056-a897-9828fdb74307\",\r\n    \"permissionId\" : \"791429a0-62df-4d0f-8c91-900f8f16237a\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseurl}}/user-permission-exception/delete-permission-from-user",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "user-permission-exception",
+                    "delete-permission-from-user"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "delete-deny-permission-from-user",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"userId\" : \"6d023c32-c1a3-45ce-8964-abd2e10f3f94\",\r\n    \"permissionId\" : \"68f456dc-ddb8-43e7-b740-c261029ddbd0\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseurl}}/user-permission-exception/delete-deny-permission-from-user",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "user-permission-exception",
+                    "delete-deny-permission-from-user"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get-user-permission",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseurl}}/user-permission-exception/get-user-permission/6d023c32-c1a3-45ce-8964-abd2e10f3f94",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "user-permission-exception",
+                    "get-user-permission",
+                    "6d023c32-c1a3-45ce-8964-abd2e10f3f94"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get-user-exeption-permission",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseurl}}/user-permission-exception/get-user-exeption-permission/0d614bf9-916c-4575-9d0d-fc4c8d61ad00",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "user-permission-exception",
+                    "get-user-exeption-permission",
+                    "0d614bf9-916c-4575-9d0d-fc4c8d61ad00"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "userRole",
+          "item": [
+            {
+              "name": "add-role-to-user",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"userId\" : \"2f08b9cf-cdf5-4056-a897-9828fdb74307\",\r\n    \"roleId\" : \"86dc47a8-daca-4111-8782-f612cc72fcbd\"\r\n}"
+                },
+                "url": {
+                  "raw": "{{baseurl}}/user-role/add-role-to-user",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "user-role",
+                    "add-role-to-user"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "wallet",
+      "item": [
+        {
+          "name": "zarin-pall",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"merchant_id\" : \"eff11155-219e-41dc-8a6d-59d880ab26bc\",\r\n    \"amount\" : \"10000\",\r\n    \"description\" : \"for course\",\r\n    \"callback_url\" : \"localhost:3000\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://sandbox.zarinpal.com/pg/v4/payment/request.json",
+              "protocol": "https",
+              "host": [
+                "sandbox",
+                "zarinpal",
+                "com"
+              ],
+              "path": [
+                "pg",
+                "v4",
+                "payment",
+                "request.json"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "1-payment-request",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"amount\" : \"100000000\",\r\n    \"callback_url\": \"http://localhost:3000/api/wallet/payment-result\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/wallet/payment-request",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "wallet",
+                "payment-request"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "withdraw-request",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"amount\" : \"10\",\r\n    \"description\" : \"poole zoor vade\",\r\n    \"sheba\" : \"1234\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/wallet/withdraw-request",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "wallet",
+                "withdraw-request"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "confirm-withdraw",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"transActionId\" : \"81221926-a9b5-485c-9b9a-d1c7d2b8ba0b\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/wallet/confirm-withdraw",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "wallet",
+                "confirm-withdraw"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3-payment-resualt",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"amount\" : \"10000\",\r\n    \"callback_url\": \"http://localhost:3000/api/wallet/payment-resualt\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/wallet/payment-result?Authority=S000000000000000000000000000003135jz&Status=OK",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "wallet",
+                "payment-result"
+              ],
+              "query": [
+                {
+                  "key": "Authority",
+                  "value": "S000000000000000000000000000003135jz"
+                },
+                {
+                  "key": "Status",
+                  "value": "OK"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2-payment-page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://sandbox.zarinpal.com/pg/StartPay/S000000000000000000000000000003135jz",
+              "protocol": "https",
+              "host": [
+                "sandbox",
+                "zarinpal",
+                "com"
+              ],
+              "path": [
+                "pg",
+                "StartPay",
+                "S000000000000000000000000000003135jz"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "course",
+      "item": [
+        {
+          "name": "category",
+          "item": [
+            {
+              "name": "add-new-category",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"categoryName\" : \"hubby\",\r\n    \"parentId\" : 23\r\n}"
+                },
+                "url": {
+                  "raw": "{{baseurl}}/course-category/add-new-category",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course-category",
+                    "add-new-category"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get-all-categories",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"categoryName\" : \"redux\",\r\n    \"parentId\" : 1\r\n}"
+                },
+                "url": {
+                  "raw": "{{baseurl}}/course-category/get-all-categories",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course-category",
+                    "get-all-categories"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "detail",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"categoryName\" : \"redux\",\r\n    \"parentId\" : 1\r\n}"
+                },
+                "url": {
+                  "raw": "{{baseurl}}/course-category/detail/1",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course-category",
+                    "detail",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "delete-category",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"categoryName\" : \"redux\",\r\n    \"parentId\" : 1\r\n}"
+                },
+                "url": {
+                  "raw": "{{baseurl}}/course-category/delete/27",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course-category",
+                    "delete",
+                    "27"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "course-type",
+          "item": [
+            {
+              "name": "add-new-type",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"typeName\" : \"ai\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseurl}}/courseType/add-new-type",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "courseType",
+                    "add-new-type"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get-all-types",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseurl}}/courseType/get-all-types",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "courseType",
+                    "get-all-types"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "delete courseType",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseurl}}/courseType/delete/1",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "courseType",
+                    "delete",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "create-course",
+          "item": [
+            {
+              "name": "create-course-helper",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseurl}}/course/create-course-helper",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course",
+                    "create-course-helper"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "create-course-step-one",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"title\" : \"react3\",\r\n    \"shortDescription\" : \"for new student\",\r\n    \"isFree\" : \"\" ,\r\n    \"level\" : \"beginner\",\r\n    \"teacherId\" : \"6d023c32-c1a3-45ce-8964-abd2e10f3f94\",\r\n    \"typeId\" : \"3\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseurl}}/course/create-course-step-one",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course",
+                    "create-course-step-one"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "create-course-step-two",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"courseId\" : \"15ba7da4-ff46-48cc-ab33-172231cd55fb\",\r\n    \"courseCategoryIdsArray\" : [1,2,3],\r\n    \"price\" : 1000,\r\n    \"fullDescription\" : \"react course org\",\r\n    \"language\" : \"fa\",\r\n    \"certificateAvailable\" : true,\r\n    \"capacity\" : 50,\r\n    \"slug\" : \"react course for beginner\",\r\n    \"duration\" : \"4 week\",\r\n    \"status\" : \"published\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseurl}}/course/create-course-step-two",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course",
+                    "create-course-step-two"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "course-like",
+          "item": [
+            {
+              "name": "add-like",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseurl}}/course-like/add-like/15ba7da4-ff46-48cc-ab33-172231cd55fb",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course-like",
+                    "add-like",
+                    "15ba7da4-ff46-48cc-ab33-172231cd55fb"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "disLike",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseurl}}/course-like/disLike/15ba7da4-ff46-48cc-ab33-172231cd55fb",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course-like",
+                    "disLike",
+                    "15ba7da4-ff46-48cc-ab33-172231cd55fb"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "delete-like",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseurl}}/course-like/delete-like/15ba7da4-ff46-48cc-ab33-172231cd55fb",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course-like",
+                    "delete-like",
+                    "15ba7da4-ff46-48cc-ab33-172231cd55fb"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "delete-disLike",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseurl}}/course-like/delete-disLike/15ba7da4-ff46-48cc-ab33-172231cd55fb",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course-like",
+                    "delete-disLike",
+                    "15ba7da4-ff46-48cc-ab33-172231cd55fb"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "comment",
+          "item": [
+            {
+              "name": "add-course-comment",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"courseId\" : \"15ba7da4-ff46-48cc-ab33-172231cd55fb\",\r\n    \"parentId\" : \"4347142e-00af-40e6-864d-67b62b19d09d\",\r\n    \"text\" : \"whats your score for this course ?\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseurl}}/course-comment/add-course-comment",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course-comment",
+                    "add-course-comment"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "update-comment",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"courseId\" : \"15ba7da4-ff46-48cc-ab33-172231cd55fb\",\r\n    \"parentId\" : \"4347142e-00af-40e6-864d-67b62b19d09d\",\r\n    \"text\" : \"whats your score for this course ?\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseurl}}/course-comment/add-course-comment",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course-comment",
+                    "add-course-comment"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get-course-comment",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"courseId\" : \"15ba7da4-ff46-48cc-ab33-172231cd55fb\",\r\n    \"parentId\" : \"4347142e-00af-40e6-864d-67b62b19d09d\",\r\n    \"text\" : \"really ?\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseurl}}/course-comment/get-course-comment/15ba7da4-ff46-48cc-ab33-172231cd55fb",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course-comment",
+                    "get-course-comment",
+                    "15ba7da4-ff46-48cc-ab33-172231cd55fb"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get-course-comment-with-permission",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"courseId\" : \"15ba7da4-ff46-48cc-ab33-172231cd55fb\",\r\n    \"parentId\" : \"4347142e-00af-40e6-864d-67b62b19d09d\",\r\n    \"text\" : \"really ?\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseurl}}/course-comment/get-course-comment-with-permission/15ba7da4-ff46-48cc-ab33-172231cd55fb",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course-comment",
+                    "get-course-comment-with-permission",
+                    "15ba7da4-ff46-48cc-ab33-172231cd55fb"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get-comment-replies",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"courseId\" : \"15ba7da4-ff46-48cc-ab33-172231cd55fb\",\r\n    \"parentId\" : \"4347142e-00af-40e6-864d-67b62b19d09d\",\r\n    \"text\" : \"really ?\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseurl}}/course-comment/get-comment-replies/4347142e-00af-40e6-864d-67b62b19d09d",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course-comment",
+                    "get-comment-replies",
+                    "4347142e-00af-40e6-864d-67b62b19d09d"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "delete-course-comment",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"courseId\" : \"15ba7da4-ff46-48cc-ab33-172231cd55fb\",\r\n    \"parentId\" : \"4347142e-00af-40e6-864d-67b62b19d09d\",\r\n    \"text\" : \"really ?\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseurl}}/course-comment/delete-course-comment/adeaef07-a642-48d4-924c-776e8ba9f8b6",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course-comment",
+                    "delete-course-comment",
+                    "adeaef07-a642-48d4-924c-776e8ba9f8b6"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get-comment-replies-with-permission",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"courseId\" : \"15ba7da4-ff46-48cc-ab33-172231cd55fb\",\r\n    \"parentId\" : \"4347142e-00af-40e6-864d-67b62b19d09d\",\r\n    \"text\" : \"really ?\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseurl}}/course-comment/get-comment-replies-with-permission/4347142e-00af-40e6-864d-67b62b19d09d",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course-comment",
+                    "get-comment-replies-with-permission",
+                    "4347142e-00af-40e6-864d-67b62b19d09d"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "confirm-course-comment-with-permission",
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"courseId\" : \"15ba7da4-ff46-48cc-ab33-172231cd55fb\",\r\n    \"parentId\" : \"4347142e-00af-40e6-864d-67b62b19d09d\",\r\n    \"text\" : \"really ?\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseurl}}/course-comment/confirm-course-comment-with-permission/4347142e-00af-40e6-864d-67b62b19d09d",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course-comment",
+                    "confirm-course-comment-with-permission",
+                    "4347142e-00af-40e6-864d-67b62b19d09d"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "reject-course-comment-with-permission",
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"courseId\" : \"15ba7da4-ff46-48cc-ab33-172231cd55fb\",\r\n    \"parentId\" : \"4347142e-00af-40e6-864d-67b62b19d09d\",\r\n    \"text\" : \"really ?\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseurl}}/course-comment/reject-course-comment-with-permission/4347142e-00af-40e6-864d-67b62b19d09d",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course-comment",
+                    "reject-course-comment-with-permission",
+                    "4347142e-00af-40e6-864d-67b62b19d09d"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "course-video",
+          "item": [
+            {
+              "name": "get-video-stream",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseurl}}/course-video/stream/:fileId",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course-video",
+                    "stream",
+                    ":fileId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "fileId",
+                      "value": ""
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get-video-stream Copy",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "## Upload API\r",
+                      "- Endpoint: POST http://localhost:3000/api/course-video/upload\r",
+                      "- Protocol: tus (resumable uploads) — https://tus.io\r",
+                      "- Auth: Authorization: Bearer <token>\r",
+                      "- Required metadata: courseId (string), sessionNumber (number, sent as string)\r",
+                      "- Allowed formats: .mp4, .webm only\r",
+                      "- Client library: use @uppy/tus or tus-js-client — do NOT implement manually.\r",
+                      "\r",
+                      "## Stream API\r",
+                      "- Endpoint: GET http://localhost:3000/api/course-video/stream/:fileId?token=<token>\r",
+                      "- Supports HTTP Range requests for seeking\r",
+                      "- Token must be passed as query param (not header), since <video>/<source> can't send custom headers\r",
+                      "- Player: use react-player with explicit <source src={url} type=\"video/mp4\" />"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseurl}}/course-video/upload",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course-video",
+                    "upload"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "get-all-courses",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseurl}}/course/get-all-courses",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "course",
+                "get-all-courses"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "typeId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "level",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "minPrice",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "courseCategoryIdsArray",
+                  "value": "[]",
+                  "disabled": true
+                },
+                {
+                  "key": "count",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "price",
+                  "disabled": true
+                },
+                {
+                  "key": "order",
+                  "value": "desc",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get-course-detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseurl}}/course/get-course-detail/15ba7da4-ff46-48cc-ab33-172231cd55fb",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "course",
+                "get-course-detail",
+                "15ba7da4-ff46-48cc-ab33-172231cd55fb"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update-course",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"courseId\": \"9d77a299-d5f2-4c4e-863f-f02104e035b2\",\r\n  \"title\": \"Updated Advanced Node.js2\",\r\n  \"shortDescription\": \"Updated short description for the course\",\r\n  \"isFree\": false,\r\n  \"level\": \"advanced\",\r\n  \"teacherId\": \"6d023c32-c1a3-45ce-8964-abd2e10f3f94\",\r\n  \"typeId\": 3,\r\n  \"price\": 450000,\r\n  \"fullDescription\": \"Updated full description with more details\",\r\n  \"language\": \"en\",\r\n  \"certificateAvailable\": true,\r\n  \"capacity\": 60,\r\n  \"slug\": \"updated-advanced-nodejs\",\r\n  \"duration\": \"15 hours\",\r\n  \"status\": \"published\",\r\n  \"courseCategoryIdsArray\": [1, 3, 9]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseurl}}/course/update-course",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "course",
+                "update-course"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "enrollment",
+      "item": [
+        {
+          "name": "reserve-course",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseurl}}/enrollment/reserve-course/9d77a299-d5f2-4c4e-863f-f02104e035b2",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "enrollment",
+                "reserve-course",
+                "9d77a299-d5f2-4c4e-863f-f02104e035b2"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "confirm-course-reserve",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseurl}}/enrollment/confirm-course-reserve/98957de1-a1d9-4eaf-935e-37ac6a6f604e",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "enrollment",
+                "confirm-course-reserve",
+                "98957de1-a1d9-4eaf-935e-37ac6a6f604e"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "finalized-enrollment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseurl}}/enrollment/finalized-enrollment/98957de1-a1d9-4eaf-935e-37ac6a6f604e",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "enrollment",
+                "finalized-enrollment",
+                "98957de1-a1d9-4eaf-935e-37ac6a6f604e"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "reject-course-reserve",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseurl}}/enrollment/reject-course-reserve/20200c61-aeb8-45bd-9d90-b6b726f08283",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "enrollment",
+                "reject-course-reserve",
+                "20200c61-aeb8-45bd-9d90-b6b726f08283"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get-all-reserves",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseurl}}/enrollment/get-all-reserves?page=&limit=createdAtStart=&createdAtEnd=&expiresAtStart=&expiresAtEnd=&courseId=&userId=&courseName=&userName=&isConfirm=&isReject=&isDelete=",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "enrollment",
+                "get-all-reserves"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": ""
+                },
+                {
+                  "key": "limit",
+                  "value": "createdAtStart="
+                },
+                {
+                  "key": "createdAtEnd",
+                  "value": ""
+                },
+                {
+                  "key": "expiresAtStart",
+                  "value": ""
+                },
+                {
+                  "key": "expiresAtEnd",
+                  "value": ""
+                },
+                {
+                  "key": "courseId",
+                  "value": ""
+                },
+                {
+                  "key": "userId",
+                  "value": ""
+                },
+                {
+                  "key": "courseName",
+                  "value": ""
+                },
+                {
+                  "key": "userName",
+                  "value": ""
+                },
+                {
+                  "key": "isConfirm",
+                  "value": ""
+                },
+                {
+                  "key": "isReject",
+                  "value": ""
+                },
+                {
+                  "key": "isDelete",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get-my-course-reserves",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseurl}}/enrollment/get-my-course-reserves?page=&limit=createdAtStart=&createdAtEnd=&expiresAtStart=&expiresAtEnd=&courseId=&courseName=&isConfirm=&isReject=&isDelete=",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "enrollment",
+                "get-my-course-reserves"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": ""
+                },
+                {
+                  "key": "limit",
+                  "value": "createdAtStart="
+                },
+                {
+                  "key": "createdAtEnd",
+                  "value": ""
+                },
+                {
+                  "key": "expiresAtStart",
+                  "value": ""
+                },
+                {
+                  "key": "expiresAtEnd",
+                  "value": ""
+                },
+                {
+                  "key": "courseId",
+                  "value": ""
+                },
+                {
+                  "key": "courseName",
+                  "value": ""
+                },
+                {
+                  "key": "isConfirm",
+                  "value": ""
+                },
+                {
+                  "key": "isReject",
+                  "value": ""
+                },
+                {
+                  "key": "isDelete",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get-my-enrooled-course",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseurl}}/enrollment/get-my-enrooled-course?page=&limit=&courseName=",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "enrollment",
+                "get-my-enrooled-course"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": ""
+                },
+                {
+                  "key": "",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": ""
+                },
+                {
+                  "key": "courseName",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/health",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "json_web_token_0aj9",
+      "secret": true
+    },
+    {
+      "key": "auth_secret_0ab8",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_0bgl",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_10vu",
+      "secret": true
+    }
+  ]
+}
