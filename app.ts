@@ -21,10 +21,19 @@ import courseVideoRouter from "./modules/course/courseVideos/courseVideos.routes
 
 export const createApp = () => {
   const app = express();
+  app.use(
+    cors({
+      origin: "http://localhost:5173",
+      credentials: true,
+    }),
+  );
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
-  app.use(cors());
-  app.use(helmet());
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: "cross-origin" },
+    }),
+  );
   app.use(cookieParser());
 
   app.get("/health", (req, res) => {
@@ -34,7 +43,7 @@ export const createApp = () => {
   app.use("/api/auth", authRouter);
   app.use("/api/user", userRouter);
   app.use("/api/role", roleRouter);
-  app.use("/api/user-role", userRoleRouter); 
+  app.use("/api/user-role", userRoleRouter);
   app.use("/api/permission", permissionRouter);
   app.use("/api/role-permission", rolePermissionRouter);
   app.use("/api/user-permission-exception", userPermissionException);
@@ -44,8 +53,8 @@ export const createApp = () => {
   app.use("/api/course", courseRouter);
   app.use("/api/course-like", courseLike);
   app.use("/api/course-comment", courseComment);
-  app.use("/api/course-video", courseVideoRouter);  
-  app.use("/api/enrollment", enrollmentRouter);  
+  app.use("/api/course-video", courseVideoRouter);
+  app.use("/api/enrollment", enrollmentRouter);
 
   app.use(errorMiddleware);
 

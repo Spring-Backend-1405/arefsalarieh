@@ -2,6 +2,7 @@ import fs from "node:fs";
 import type { Request, Response } from "express";
 import { createTusServer, uploadContext, type UploadFinalData } from "../../../utils/tus/tus";
 import { prisma } from "../../../utils/prisma"; 
+import { toAbsolutePath } from "../../../utils/tus/storage";
 
 type CourseUploadExtra = { courseId: string; sessionNumber: number };
 
@@ -68,6 +69,65 @@ export const uploadCourseVideo = async (req: Request, res: Response) => {
     console.error("tus handle error:", error);
     if (!res.headersSent) {
       res.status(500).json({ message: "Upload failed" });
+    }
+  }
+};
+
+
+export const getStreamCourseVideo = async (req: Request, res: Response) => {
+  try {
+    const { fileId } = req.params;
+
+    const fileRecord = await prisma.courseVideo.findUnique({
+      where: { id: String(fileId) },
+    });
+
+    if (!fileRecord) {
+      return res.status(404).json({ message: "File not found." });
+    }
+
+    const filePath = toAbsolutePath(fileRecord.path);
+
+    if (!fs.existsSync(filePath)) {
+      console.error("[streamFile] file missing on disk at:", filePath);
+      return res.status(404).json({ message: "File not found on storage." });
+    }
+
+    const stat = fs.statSync(filePath);
+    const fileSize = stat.size;
+    const mimeType = fileRecord.mimeType || "application/octet-stream";
+
+    const range = req.headers.range;
+
+    if (range) {
+      const parts = range.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+      const chunkSize = end - start + 1;
+
+      res.writeHead(206, {
+        "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+        "Accept-Ranges": "bytes",
+        "Content-Length": chunkSize,
+        "Content-Type": mimeType,
+      });
+
+      const stream = fs.createReadStream(filePath, { start, end });
+      stream.pipe(res);
+    } else {
+      res.writeHead(200, {
+        "Content-Length": fileSize,
+        "Content-Type": mimeType,
+        "Accept-Ranges": "bytes",
+      });
+
+      const stream = fs.createReadStream(filePath);
+      stream.pipe(res);
+    }
+  } catch (error) {
+    console.error("Stream file error:", error);
+    if (!res.headersSent) {
+      res.status(500).json({ message: "Failed to stream file." });
     }
   }
 };
