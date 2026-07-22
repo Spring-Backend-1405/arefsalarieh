@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Spring-Backend-1405/arefsalarieh.git"
+    "url": "git+https://github.com/arefsalarieh/academia-express.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "bugs": {
-    "url": "https://github.com/Spring-Backend-1405/arefsalarieh/issues"
+    "url": "https://github.com/arefsalarieh/academia-express/issues"
   },
   "homepage": "https://github.com/Spring-Backend-1405/arefsalarieh#readme",
   "dependencies": {
