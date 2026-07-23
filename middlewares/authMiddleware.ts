@@ -58,14 +58,17 @@ const hasUser = (req: Request, res: Response, next: NextFunction) => {
   token = token?.split(" ")[1];
   if (token) {
     const user = checkJwtToken(token);
-    if (!user) customError("your token is not valid", 401);
-    const authUser = user as { id: number };
+    if (user) {
+      const authUser = user as { id: number };
 
-    const authReq = req as any;
+      const authReq = req as any;
 
-    authReq.user = {
-      id: authUser.id,
-    };
+      authReq.user = {
+        id: authUser.id,
+      };
+
+      next();
+    }
 
     next();
   }

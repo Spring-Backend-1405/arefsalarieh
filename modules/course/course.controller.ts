@@ -59,7 +59,7 @@ export const getAllCourses = async (
 
     const totalCount = await prisma.course.count({ where });
 
-    const courses = await findCourses(where, orderBy, skip, limit, id);
+    const courses = await findCourses(where, orderBy, skip, limit);
 
     let formattedCourses = selectedFields(courses, id);
 
