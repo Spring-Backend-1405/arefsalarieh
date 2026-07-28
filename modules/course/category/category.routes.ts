@@ -20,6 +20,7 @@ const categoryRouter = express.Router();
 categoryRouter.post(
   "/add-new-category",
   checkAuthentication,
+  requirePermission(Resources.CATEGPRY, Actions.CREATE),
   addCategoryValidation,
   validateMiddleware,
   addNewCategory,
@@ -27,7 +28,6 @@ categoryRouter.post(
 
 categoryRouter.get(
   "/get-all-categories",
-  checkAuthentication,
   getAllCategoriesValidation,
   validateMiddleware,
   getAllCategories,
