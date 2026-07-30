@@ -1,7 +1,11 @@
 import fs from "node:fs";
 import type { Request, Response } from "express";
-import { createTusServer, uploadContext, type UploadFinalData } from "../../../utils/tus/tus";
-import { prisma } from "../../../utils/prisma"; 
+import {
+  createTusServer,
+  uploadContext,
+  type UploadFinalData,
+} from "../../../utils/tus/tus";
+import { prisma } from "../../../utils/prisma";
 import { toAbsolutePath } from "../../../utils/tus/storage";
 
 type CourseUploadExtra = { courseId: string; sessionNumber: number };
@@ -19,13 +23,13 @@ const tusServer = createTusServer<CourseUploadExtra>({
 
     if (!ALLOWED_VIDEO_EXTENSIONS.has(extension)) {
       throw new Error(
-        `File format "${extension}" is not supported. Allowed formats: ${[...ALLOWED_VIDEO_EXTENSIONS].join(", ")}`
+        `File format "${extension}" is not supported. Allowed formats: ${[...ALLOWED_VIDEO_EXTENSIONS].join(", ")}`,
       );
     }
 
     if (mimeType && !ALLOWED_VIDEO_MIME_TYPES.has(mimeType)) {
       throw new Error(
-        `MIME type "${mimeType}" is not supported. Allowed types: ${[...ALLOWED_VIDEO_MIME_TYPES].join(", ")}`
+        `MIME type "${mimeType}" is not supported. Allowed types: ${[...ALLOWED_VIDEO_MIME_TYPES].join(", ")}`,
       );
     }
 
@@ -72,7 +76,6 @@ export const uploadCourseVideo = async (req: Request, res: Response) => {
     }
   }
 };
-
 
 export const getStreamCourseVideo = async (req: Request, res: Response) => {
   try {
@@ -129,5 +132,81 @@ export const getStreamCourseVideo = async (req: Request, res: Response) => {
     if (!res.headersSent) {
       res.status(500).json({ message: "Failed to stream file." });
     }
+  }
+};
+
+export const deleteCourseVideo = async (req: Request, res: Response) => {
+  try {
+    const { fileId } = req.params;
+    const userId = (req as any).user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized." });
+    }
+
+    const fileRecord = await prisma.courseVideo.findUnique({
+      where: { id: String(fileId) },
+      include: { course: true },
+    });
+
+    if (!fileRecord) {
+      return res.status(404).json({ message: "Video not found." });
+    }
+
+    // if (fileRecord.course.teacherId !== userId) {
+    //   return res.status(403).json({ message: "You are not allowed to delete this video." });
+    // }
+
+    const filePath = toAbsolutePath(fileRecord.path);
+
+    await prisma.courseVideo.delete({ where: { id: String(fileId) } });
+
+    try {
+      await fs.promises.unlink(filePath);
+    } catch (unlinkError) {
+      console.error(
+        `[deleteCourseVideo] Failed to remove file from disk: ${filePath}`,
+        unlinkError,
+      );
+    }
+
+    return res.status(200).json({ message: "Video deleted successfully." });
+  } catch (error) {
+    console.error("Delete course video error:", error);
+    return res.status(500).json({ message: "Failed to delete video." });
+  }
+};
+
+export const updateCourseVideoSession = async (req: Request, res: Response) => {
+  try {
+    const { fileId, newSessionNumber } = req.body;
+    const userId = (req as any).user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized." });
+    }
+
+    const fileRecord = await prisma.courseVideo.findUnique({
+      where: { id: String(fileId) },
+      include: { course: true },
+    });
+
+    if (!fileRecord) {
+      return res.status(404).json({ message: "Video not found." });
+    }
+
+    await prisma.courseVideo.update({
+      where: { id: String(fileId) },
+      data: { sessionNumber: newSessionNumber },
+    });
+
+    return res
+      .status(200)
+      .json({ message: "Video session number updated successfully." });
+  } catch (error) {
+    console.error("Update course video session error:", error);
+    return res
+      .status(500)
+      .json({ message: "Failed to update video session number." });
   }
 };
