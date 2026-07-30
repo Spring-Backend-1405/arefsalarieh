@@ -19,6 +19,7 @@ import courseLike from "./modules/course/courseLike/courseLike.routes";
 import courseComment from "./modules/course/courseComment/courseComment.routes";
 import enrollmentRouter from "./modules/enrollment/enrollment.routes";
 import courseVideoRouter from "./modules/course/courseVideos/courseVideos.routes";
+import courseImageRouter from "./modules/course/courseImage/courseImage.routes";
 
 export const createApp = () => {
   const app = express();
@@ -56,6 +57,7 @@ export const createApp = () => {
   app.use("/api/course-comment", courseComment);
   app.use("/api/course-video", courseVideoRouter);
   app.use("/api/enrollment", enrollmentRouter);
+  app.use("/api/course-image", courseImageRouter);
 
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
   app.use(errorMiddleware);

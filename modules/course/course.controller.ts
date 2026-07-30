@@ -25,6 +25,7 @@ export const getAllCourses = async (
   try {
     const authReq = req as any;
     const id = authReq?.user?.id || "";
+    const baseUrl = `${req.protocol}://${req.get("host")}`; 
 
     const { sortBy, order } = req.query as any;
     const where: any = {
@@ -61,7 +62,7 @@ export const getAllCourses = async (
 
     const courses = await findCourses(where, orderBy, skip, limit);
 
-    let formattedCourses = selectedFields(courses, id);
+    let formattedCourses = selectedFields(courses, id, baseUrl); 
 
     if (sortKey) {
       formattedCourses = formattedCourses.sort((a: any, b: any) => {
@@ -103,6 +104,7 @@ export const getCourseDetail = async (
   try {
     const authReq = req as any;
     const id = authReq?.user?.id || "";
+    const baseUrl = `${req.protocol}://${req.get("host")}`; 
 
     const { courseId } = req.params;
 
@@ -112,7 +114,7 @@ export const getCourseDetail = async (
       return next(customError("course not found", 404));
     }
 
-    const corseForResponse = handleCorseDetailResponse(existingCourse, id);
+    const corseForResponse = handleCorseDetailResponse(existingCourse, id, baseUrl); 
 
     res.json({
       message: true,

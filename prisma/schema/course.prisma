@@ -51,6 +51,7 @@ model Course {
   courseEnrolls       CourseEnroll[]
   courseInvoices      CourseInvoice[]
   files               CourseVideo[]
+  images              CourseImage[]
 }
 
 model CourseDetail {
@@ -147,4 +148,17 @@ model CourseVideo {
 
   courseId String
   course   Course @relation(fields: [courseId], references: [id])
+}
+
+model CourseImage {
+  id        String   @id @default(uuid())
+  filename  String
+  path      String
+  mimetype  String
+  size      Int
+  isMain    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 }

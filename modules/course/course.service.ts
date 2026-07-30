@@ -152,14 +152,23 @@ export const findCourses = async (
       },
       courseLikes: true,
       courseDisLikes: true,
-      files : true,
+      files: true,
+      images: {
+        where: { isMain: true },
+        take: 1,
+        select: { path: true, filename: true },
+      },
     },
     skip,
     take: limit,
   });
 };
 
-export const selectedFields = (courses: any, userId?: string) => {
+export const selectedFields = (
+  courses: any,
+  userId?: string,
+  baseUrl?: string,
+) => {
   return courses.map((course: any) => ({
     id: course.id,
     title: course.title,
@@ -182,6 +191,13 @@ export const selectedFields = (courses: any, userId?: string) => {
     totalStudent: course.detail?.totalStudent || 0,
     duration: course.detail?.duration || null,
     files: course.files || [],
+    images:
+      course.images && course.images.length > 0
+        ? course.images.map((img: any) => ({
+            ...img,
+            url: `${baseUrl}/uploads/${img.path}`,
+          }))
+        : [],
     likesCount: course.courseLikes && course.courseLikes.length,
     isLiked:
       userId &&
@@ -190,7 +206,6 @@ export const selectedFields = (courses: any, userId?: string) => {
       course.courseLikes.some((item: any) => item.userId === userId)
         ? true
         : false,
-
     disLikesCount: course.courseDisLikes && course.courseDisLikes.length,
     isDisLiked:
       userId &&
@@ -227,6 +242,7 @@ export const findCourseDetail = async (courseId: string): Promise<any> => {
       },
       courseLikes: true,
       courseDisLikes: true,
+      images: true,
     },
   });
 };
@@ -234,25 +250,31 @@ export const findCourseDetail = async (courseId: string): Promise<any> => {
 export const handleCorseDetailResponse = (
   existingCourse: any,
   userId: string,
+  baseUrl: string,
 ) => {
-  const likeCount =
-    existingCourse.courseLikes && existingCourse.courseLikes.length;
+  const likeCount = existingCourse.courseLikes?.length || 0;
   const isLiked =
-    existingCourse.courseLikes &&
-    existingCourse.courseLikes.some((item: any) => item.userId === userId);
-  const disLikeCount =
-    existingCourse.courseDisLikes && existingCourse.courseDisLikes.length;
+    existingCourse.courseLikes?.some((item: any) => item.userId === userId) ||
+    false;
+  const disLikeCount = existingCourse.courseDisLikes?.length || 0;
   const isDisLiked =
-    existingCourse.courseDisLikes &&
-    existingCourse.courseDisLikes.some((item: any) => item.userId === userId);
+    existingCourse.courseDisLikes?.some(
+      (item: any) => item.userId === userId,
+    ) || false;
 
-  const { courseLikes, courseDisLikes, ...corseForResponse } = {
+  const imagesWithUrl = (existingCourse.images || []).map((img: any) => ({
+    ...img,
+    url: `${baseUrl}/uploads/${img.path}`,
+  }));
+
+  const result = {
     ...existingCourse,
+    images: imagesWithUrl,
     likeCount,
     isLiked,
     disLikeCount,
     isDisLiked,
   };
 
-  return corseForResponse;
+  return result;
 };
