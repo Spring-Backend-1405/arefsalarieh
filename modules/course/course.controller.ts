@@ -59,7 +59,46 @@ export const getAllCourses = async (
 
     const totalCount = await prisma.course.count({ where });
 
-    const courses = await findCourses(where, orderBy, skip, limit, id);
+    const courses = await prisma.course.findMany({
+      where,
+      orderBy: Object.keys(orderBy).length > 0 ? orderBy : undefined,
+      select: {
+        id: true,
+        title: true,
+        shortDescription: true,
+        level: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        isFree: true,
+        teacher: {
+          select: { id: true, name: true, email: true },
+        },
+        courseType: {
+          select: { id: true, typeName: true },
+        },
+        coursePrices: {
+          where: { isActive: true },
+          take: 1,
+          select: { price: true, discountPrice: true },
+        },
+        courseCategoryLists: {
+          select: {
+            category: {
+              select: { id: true, categoryName: true, parentId: true },
+            },
+          },
+        },
+        detail: {
+          select: { totalStudent: true, duration: true },
+        },
+        courseLikes: true,
+        courseDisLikes: true,
+        files : true,
+      },
+      skip,
+      take: limit,
+    });
 
     let formattedCourses = selectedFields(courses, id);
 
@@ -113,7 +152,7 @@ export const getCourseDetail = async (
     }
 
     const corseForResponse = handleCorseDetailResponse(existingCourse, id);
-    
+
     res.json({
       message: true,
       data: corseForResponse,

@@ -11,7 +11,8 @@ export const Resources = {
   WALLET : 'wallet',
   CATEGPRY : 'category',
   COURSETYPE : 'course-type',
-  RESERVE : 'reserve'
+  RESERVE : 'reserve',
+  VIDEO : 'video',
 } as const;
 
 export const Actions = {
