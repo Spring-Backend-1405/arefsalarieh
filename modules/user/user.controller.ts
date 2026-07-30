@@ -35,9 +35,7 @@ export const getUserProfile = async (
             },
           },
         },
-        userPermission: {
-          include: { permission: true },
-        },
+        userPermission: { include: { permission: true } },
       },
     });
 
@@ -47,45 +45,19 @@ export const getUserProfile = async (
 
     const baseUrl = `${req.protocol}://${req.get("host")}`;
 
-    const rolesWithPermissions = existingUser.roles.map((userRole) => ({
-      id: userRole.role.id,
-      name: userRole.role.name,
-      permissions: userRole.role.rolePermissions.map(
-        (rp) => `${rp.permission.resource}:${rp.permission.action}`,
-      ),
-    }));
-
-    const exceptionPermissions = existingUser.userPermission.map((up) => ({
-      resource: up.permission.resource,
-      action: up.permission.action,
-      type: up.type,
-    }));
-
     const userWithImageUrls = {
-      id: existingUser.id,
-      name: existingUser.name,
-      email: existingUser.email,
-      gender: existingUser.gender,
-      isActive: existingUser.isActive,
-      isDelete: existingUser.isDelete,
-      isEmailVerified: existingUser.isEmailVerified,
-      twoFactorEnabled: existingUser.twoFactorEnabled,
-      qrCodeEnabled: existingUser.qrCodeEnabled,
-      createdAt: existingUser.createdAt,
-      profile: existingUser.profile,
-      wallet: existingUser.wallet,
+      ...existingUser,
       userPictures: existingUser.userPictures.map((pic: any) => ({
         ...pic,
-        url: `${baseUrl}/api/user/image/${pic.id}`,
+        url: `${baseUrl}/uploads/${pic.path}`, 
       })),
-      roles: rolesWithPermissions,
-      userExceptionPermissions: exceptionPermissions,
     };
 
+    const { password: _, ...userWithoutPassword } = userWithImageUrls;
 
     res.status(200).json({
       status: true,
-      data: userWithImageUrls,
+      data: userWithoutPassword,
     });
   } catch (error) {
     console.log("error in getUserProfile = ", error);
@@ -257,7 +229,7 @@ export const uploadProfileImages = async (
         data: {
           userId: id,
           filename: item.filename,
-          path: item.filename,
+          path: `profile/${item.filename}`, 
           mimetype: item.mimetype,
           size: item.size,
           isMain: isMain,
@@ -297,8 +269,7 @@ export const getUserImageById = async (
       return next(customError("Image not found", 404));
     }
 
-    const filename = image.path.split(/[\\/]/).pop();
-    const uploadsPath = path.join(process.cwd(), "uploads", filename!);
+    const uploadsPath = path.join(process.cwd(), "uploads", image.path);
 
     if (!fs.existsSync(uploadsPath)) {
       return next(customError("File not found on server", 404));

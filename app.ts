@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
+import path from "path";
 import errorMiddleware from "./middlewares/errorMiddleware";
 import authRouter from "./modules/auth/auth.routes";
 import userRouter from "./modules/user/user.routes";
@@ -56,6 +57,7 @@ export const createApp = () => {
   app.use("/api/course-video", courseVideoRouter);
   app.use("/api/enrollment", enrollmentRouter);
 
+  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
   app.use(errorMiddleware);
 
   return app;
