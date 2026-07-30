@@ -1,6 +1,8 @@
 import type { Request, Response, NextFunction } from "express";
 import { prisma } from "../../../utils/prisma";
 import { customError } from "../../../utils/customError";
+import fs from "fs";
+import path from "path";
 
 export const uploadCourseImages = async (
   req: Request,
@@ -66,7 +68,6 @@ export const uploadCourseImages = async (
   }
 };
 
-
 export const changeCourseMainImage = async (
   req: Request,
   res: Response,
@@ -121,6 +122,75 @@ export const changeCourseMainImage = async (
     });
   } catch (error) {
     console.error("Error in changeCourseMainImage:", error);
+    next(error);
+  }
+};
+
+export const deleteCourseImage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const authReq = req as any;
+    const userId = authReq.user.id;
+    const { courseId, imageId } = req.body;
+
+    const course = await prisma.course.findFirst({
+      where: { id: String(courseId) },
+      include: { images: true },
+    });
+
+    if (!course) {
+      return next(customError("Course not found", 404));
+    }
+
+    if (course.teacherId !== userId) {
+      return next(customError("You are not the teacher of this course", 403));
+    }
+
+    const image = course.images.find((img: any) => img.id === String(imageId));
+    if (!image) {
+      return next(customError("Image not found in this course", 404));
+    }
+
+    const filePath = path.join(process.cwd(), "uploads", image.path);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.courseImage.delete({
+        where: { id: String(imageId) },
+      });
+
+      if (image.isMain) {
+        const remainingImages = await tx.courseImage.findMany({
+          where: { courseId: String(courseId) },
+          orderBy: { createdAt: "desc" }, 
+          take: 1,
+        });
+
+        if (remainingImages.length > 0) {
+          await tx.courseImage.update({
+            where: { id: remainingImages[0].id },
+            data: { isMain: true },
+          });
+        }
+      }
+    });
+
+    const updatedImages = await prisma.courseImage.findMany({
+      where: { courseId: String(courseId) },
+    });
+
+    res.status(200).json({
+      status: true,
+      message: "Image deleted successfully",
+      data: updatedImages,
+    });
+  } catch (error) {
+    console.error("Error in deleteCourseImage:", error);
     next(error);
   }
 };

@@ -4,7 +4,7 @@ import {
   requirePermission,
 } from "../../../middlewares/authMiddleware";
 import uploadCourse from "../../../middlewares/uploadCourse";
-import { changeCourseMainImage, uploadCourseImages } from "./courseImage.controller";
+import { changeCourseMainImage, deleteCourseImage, uploadCourseImages } from "./courseImage.controller";
 import { Actions, Resources } from "../../../constants/permissions";
 
 const courseImageRouter = express.Router();
@@ -25,5 +25,10 @@ courseImageRouter.put(
   changeCourseMainImage,
 );
 
+courseImageRouter.delete(
+  "/delete",
+  checkAuthentication,
+  deleteCourseImage,
+);
 
 export default courseImageRouter;
