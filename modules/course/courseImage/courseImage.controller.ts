@@ -65,3 +65,62 @@ export const uploadCourseImages = async (
     next(error);
   }
 };
+
+
+export const changeCourseMainImage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const authReq = req as any;
+    const userId = authReq.user.id;
+    const { courseId, imageId } = req.body;
+
+    const course = await prisma.course.findFirst({
+      where: { id: String(courseId) },
+      include: { images: true },
+    });
+
+    if (!course) {
+      return next(customError("Course not found", 404));
+    }
+
+
+    const isTeacher = course.teacherId === userId;
+
+    if (!isTeacher) {
+      return next(customError("You are not the teacher of this course", 403));
+    }
+
+    const image = course.images.find((img: any) => img.id === String(imageId));
+    if (!image) {
+      return next(customError("Image not found in this course", 404));
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.courseImage.updateMany({
+        where: { courseId: String(courseId) },
+        data: { isMain: false },
+      });
+
+      await tx.courseImage.update({
+        where: { id: String(imageId) },
+        data: { isMain: true },
+      });
+    });
+
+    const updatedImages = await prisma.courseImage.findMany({
+      where: { courseId: String(courseId) },
+    });
+
+    res.status(200).json({
+      status: true,
+      message: "Main image changed successfully",
+      data: updatedImages,
+    });
+  } catch (error) {
+    console.error("Error in changeCourseMainImage:", error);
+    next(error);
+  }
+};
