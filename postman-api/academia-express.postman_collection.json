@@ -1,7 +1,7 @@
 {
   "info": {
     "_postman_id": "3a5f008a-8404-4a48-ba22-9cffb60d4e1b",
-    "name": "task kargah express",
+    "name": "academia-express",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "29487040"
   },
@@ -178,7 +178,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"email\" : \"arefsalarieh4@gmail.com\",\r\n    \"password\" : \"123456\"\r\n}",
+              "raw": "{\r\n    \"email\" : \"arefsalarieh@gmail.com\",\r\n    \"password\" : \"123456\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -590,6 +590,42 @@
           "response": []
         },
         {
+          "name": "get-image-by-id",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseurl}}/user/image/14122239-5810-488d-9dd1-01485b79a8ba",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "user",
+                "image",
+                "14122239-5810-488d-9dd1-01485b79a8ba"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "delete-user-image",
           "request": {
             "auth": {
@@ -609,14 +645,14 @@
               "raw": ""
             },
             "url": {
-              "raw": "{{baseurl}}/user/delete-user-image/0f7bd949-8b06-44ec-8c7d-463667449069",
+              "raw": "{{baseurl}}/user/delete-user-image/66bf976a-c45d-402e-bb42-8108c45bb0c7",
               "host": [
                 "{{baseurl}}"
               ],
               "path": [
                 "user",
                 "delete-user-image",
-                "0f7bd949-8b06-44ec-8c7d-463667449069"
+                "66bf976a-c45d-402e-bb42-8108c45bb0c7"
               ]
             }
           },
@@ -771,9 +807,8 @@
                   "type": "file",
                   "uuid": "007c2088-93a0-4a52-8d95-4762cc4f291e",
                   "src": [
-                    "/H:/image/MaNzaRe/MOBI/3Jokes_Mobile%20(30).jpg",
-                    "/H:/image/MaNzaRe/MOBI/004_135.JPG",
-                    "/H:/image/MaNzaRe/MOBI/04.JPG"
+                    "/C:/Users/MazandClick/Desktop/MOBI/(181).JPG",
+                    "/C:/Users/MazandClick/Desktop/MOBI/(264).JPG"
                   ]
                 }
               ]
@@ -927,7 +962,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\r\n    \"resource\" : \"reserve\",\r\n    \"action\" : \"read\",\r\n    \"description\" : \"read reserve\"\r\n}",
+                  "raw": "{\r\n    \"resource\" : \"video\",\r\n    \"action\" : \"update\",\r\n    \"description\" : \"update video\"\r\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1626,6 +1661,16 @@
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "GET",
                 "header": [
                   {
@@ -2258,7 +2303,7 @@
               "response": []
             },
             {
-              "name": "get-video-stream Copy",
+              "name": "upload video help(check script tab)",
               "event": [
                 {
                   "listen": "test",
@@ -2295,6 +2340,145 @@
                   "path": [
                     "course-video",
                     "upload"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "delete-video",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseurl}}/course-video/5ae9f66f-fa76-40e9-a68b-66e9474deb35",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course-video",
+                    "5ae9f66f-fa76-40e9-a68b-66e9474deb35"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "update-session",
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"fileId\" : \"e9607b77-ec60-43ca-9c87-5955fada3dc1\",\r\n    \"newSessionNumber\" : 2\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseurl}}/course-video/update-session",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course-video",
+                    "update-session"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "course-image",
+          "item": [
+            {
+              "name": "add-course-image",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "files",
+                      "type": "file",
+                      "uuid": "48c60091-8386-450c-8101-311320c9b344",
+                      "src": [
+                        "/C:/Users/MazandClick/Desktop/MOBI/01SC087.JPG",
+                        "/C:/Users/MazandClick/Desktop/MOBI/02.JPG"
+                      ]
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseurl}}/course-image/upload/15ba7da4-ff46-48cc-ab33-172231cd55fb",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course-image",
+                    "upload",
+                    "15ba7da4-ff46-48cc-ab33-172231cd55fb"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "change-main-image",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n        \"courseId\" : \"15ba7da4-ff46-48cc-ab33-172231cd55fb\",\r\n    \"imageId\" :\"458731b2-7c87-44d9-97f1-861c8a5959d9\"\r\n}"
+                },
+                "url": {
+                  "raw": "{{baseurl}}/course-image/change-main-image",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course-image",
+                    "change-main-image"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "delete-course-image",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n        \"courseId\" : \"15ba7da4-ff46-48cc-ab33-172231cd55fb\",\r\n    \"imageId\" :\"e3b7d459-9d2e-49ad-99f4-0fdb4ccb838f\"\r\n}"
+                },
+                "url": {
+                  "raw": "{{baseurl}}/course-image/delete",
+                  "host": [
+                    "{{baseurl}}"
+                  ],
+                  "path": [
+                    "course-image",
+                    "delete"
                   ]
                 }
               },
