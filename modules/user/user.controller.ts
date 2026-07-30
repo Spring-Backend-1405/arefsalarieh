@@ -342,6 +342,8 @@ export const changeMainImage = async (
   }
 };
 
+
+
 export const deleteUserImage = async (
   req: Request,
   res: Response,
@@ -349,50 +351,46 @@ export const deleteUserImage = async (
 ) => {
   try {
     const authReq = req as any;
-    const { id } = authReq.user;
+    const userId = authReq.user.id;
     const { imageId } = req.params;
-
-    const existingUser = await findUser({ id });
-    if (!existingUser) {
-      return next(customError("User not found", 404));
-    }
 
     const image = await prisma.userPictures.findFirst({
       where: {
         id: String(imageId),
-        userId: id,
+        userId: userId,
       },
     });
 
     if (!image) {
-      return next(
-        customError("Image not found or you don't have permission", 404),
-      );
+      return next(customError("Image not found or you don't have permission", 404));
     }
 
-    await prisma.$transaction(async (tx) => {
-      await tx.userPictures.delete({
-        where: { id: String(imageId) },
-      });
+    const filePath = path.join(process.cwd(), "uploads", image.path);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
 
-      if (image.isMain) {
-        const remainingImages = await tx.userPictures.findMany({
-          where: { userId: id },
-          orderBy: { createdAt: "asc" },
-          take: 1,
-        });
-
-        if (remainingImages.length > 0) {
-          await tx.userPictures.update({
-            where: { id: remainingImages[0].id },
-            data: { isMain: true },
-          });
-        }
-      }
+    await prisma.userPictures.delete({
+      where: { id: String(imageId) },
     });
 
+    if (image.isMain) {
+      const remainingImages = await prisma.userPictures.findMany({
+        where: { userId: userId },
+        orderBy: { createdAt: "asc" },
+        take: 1,
+      });
+
+      if (remainingImages.length > 0) {
+        await prisma.userPictures.update({
+          where: { id: remainingImages[0].id },
+          data: { isMain: true },
+        });
+      }
+    }
+
     const updatedImages = await prisma.userPictures.findMany({
-      where: { userId: id },
+      where: { userId: userId },
     });
 
     res.status(200).json({
@@ -405,6 +403,4 @@ export const deleteUserImage = async (
     next(error);
   }
 };
-
-
 
