@@ -152,6 +152,7 @@ export const findCourses = async (
       },
       courseLikes: true,
       courseDisLikes: true,
+      files : true,
     },
     skip,
     take: limit,
@@ -180,7 +181,7 @@ export const selectedFields = (courses: any, userId?: string) => {
     categories: course.courseCategoryLists.map((item: any) => item.category),
     totalStudent: course.detail?.totalStudent || 0,
     duration: course.detail?.duration || null,
-        files : course.files || [],
+    files: course.files || [],
     likesCount: course.courseLikes && course.courseLikes.length,
     isLiked:
       userId &&
@@ -201,56 +202,57 @@ export const selectedFields = (courses: any, userId?: string) => {
   }));
 };
 
-
-export const findCourseDetail = async (courseId : string) : Promise<any> =>{
+export const findCourseDetail = async (courseId: string): Promise<any> => {
   return await prisma.course.findFirst({
-      where: {
-        id: String(courseId),
+    where: {
+      id: String(courseId),
+    },
+    include: {
+      coursePrices: {
+        where: { isActive: true },
       },
-      include: {
-        coursePrices: {
-          where: { isActive: true },
+      detail: true,
+      teacher: {
+        select: {
+          id: true,
+          name: true,
+          userPictures: { where: { isMain: true } },
         },
-        detail: true,
-        teacher: {
-          select: {
-            id: true,
-            name: true,
-            userPictures: { where: { isMain: true } },
-          },
-        },
-        courseType: true,
-        courseCategoryLists: {
-          select: {
-            category: true,
-          },
-        },
-        courseLikes: true,
-        courseDisLikes: true,
       },
-    });
-}
+      courseType: true,
+      courseCategoryLists: {
+        select: {
+          category: true,
+        },
+      },
+      courseLikes: true,
+      courseDisLikes: true,
+    },
+  });
+};
 
+export const handleCorseDetailResponse = (
+  existingCourse: any,
+  userId: string,
+) => {
+  const likeCount =
+    existingCourse.courseLikes && existingCourse.courseLikes.length;
+  const isLiked =
+    existingCourse.courseLikes &&
+    existingCourse.courseLikes.some((item: any) => item.userId === userId);
+  const disLikeCount =
+    existingCourse.courseDisLikes && existingCourse.courseDisLikes.length;
+  const isDisLiked =
+    existingCourse.courseDisLikes &&
+    existingCourse.courseDisLikes.some((item: any) => item.userId === userId);
 
-export const handleCorseDetailResponse = (existingCourse : any , userId : string) =>{
-    const likeCount =
-      existingCourse.courseLikes && existingCourse.courseLikes.length;
-    const isLiked =
-      existingCourse.courseLikes &&
-      existingCourse.courseLikes.some((item: any) => item.userId === userId);
-    const disLikeCount =
-      existingCourse.courseDisLikes && existingCourse.courseDisLikes.length;
-    const isDisLiked =
-      existingCourse.courseDisLikes &&
-      existingCourse.courseDisLikes.some((item: any) => item.userId === userId);
+  const { courseLikes, courseDisLikes, ...corseForResponse } = {
+    ...existingCourse,
+    likeCount,
+    isLiked,
+    disLikeCount,
+    isDisLiked,
+  };
 
-    const { courseLikes, courseDisLikes, ...corseForResponse } = {
-      ...existingCourse,
-      likeCount,
-      isLiked,
-      disLikeCount,
-      isDisLiked,
-    };
-
-    return corseForResponse
-}
+  return corseForResponse;
+};
