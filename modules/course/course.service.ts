@@ -180,7 +180,7 @@ export const selectedFields = (courses: any, userId?: string) => {
     categories: course.courseCategoryLists.map((item: any) => item.category),
     totalStudent: course.detail?.totalStudent || 0,
     duration: course.detail?.duration || null,
-
+        files : course.files || [],
     likesCount: course.courseLikes && course.courseLikes.length,
     isLiked:
       userId &&

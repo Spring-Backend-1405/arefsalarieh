@@ -113,7 +113,7 @@ export const getCourseDetail = async (
     }
 
     const corseForResponse = handleCorseDetailResponse(existingCourse, id);
-    
+
     res.json({
       message: true,
       data: corseForResponse,
